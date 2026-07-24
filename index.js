@@ -140,25 +140,33 @@ bot.on('message', (msg) => {
     salesData.monthly += amount;
     salesData.totalOrders += 1;
 
-    let u = users[targetId] || { totalSpent: 0, coupons: 0, rollover: 0 };
-    u.totalSpent += amount;
-    u.rollover += amount;
+    if (!users[targetId]) {
+      users[targetId] = { totalSpent: 0, coupons: 0, rollover: 0 };
+    }
+    let u = users[targetId];
 
-    // အော်ဒါ လက်ခံလိုက်ပါက အသုံးပြုထားသော Coupon များကို စာရင်းထဲမှ နှုတ်ပေးခြင်း
+    // အော်ဒါ လက်ခံလိုက်ပါက အသုံးပြုထားသော Coupon များကို နှုတ်ပေးခြင်း
     const usedCoupons = userState[`used_coupon_${targetId}`] || 0;
     if (usedCoupons > 0) {
       u.coupons = Math.max(0, u.coupons - usedCoupons);
       delete userState[`used_coupon_${targetId}`];
     }
 
+    u.totalSpent += amount;
+    u.rollover += amount;
+
+    // Coupon တွက်ချက်ခြင်း (၁သိန်း ပြည့်တိုင်း ၁ခု ရမည်)
     let newCoupons = 0;
     while (u.rollover >= 100000) {
       newCoupons++;
-      u.coupons++;
       u.rollover -= 100000;
     }
 
-    let couponMsg = `\n\n🎟️ **Coupon အခြေအနေ:**\n• ဝယ်ယူခဲ့သော ပမာဏ: ${amount.toLocaleString()} MMK\n• နောက်ထပ် Coupon ရရန် လိုအပ်သည့် ပမာဏ: ${(100000 - u.rollover).toLocaleString()} MMK`;
+    // Customer အကောင့်ထဲသို့ Coupon အသစ်များ ပေါင်းထည့်ပေးခြင်း
+    u.coupons += newCoupons;
+
+    let neededAmount = 100000 - u.rollover;
+    let couponMsg = `\n\n🎟️ **Coupon အခြေအနေ:**\n• ဝယ်ယူခဲ့သော ပမာဏ: ${amount.toLocaleString()} MMK\n• နောက်ထပ် Coupon ရရန် လိုအပ်သည့် ပမာဏ: ${neededAmount.toLocaleString()} MMK`;
     if (newCoupons > 0) {
       couponMsg += `\n\n🎉 **ဂုဏ်ယူပါတယ်ရှင့်! 500 MMK Discount Coupon (${newCoupons} ခု) အသစ် ထပ်မံရရှိထားပါတယ်နော် 💕**`;
     }
@@ -180,8 +188,12 @@ bot.on('message', (msg) => {
   else if (text === '♟️ Magic Chess Go Go') sendPrice(chatId, 'chess');
   else if (text === '📦 Other Products') sendPrice(chatId, 'other');
   else if (text === '🎟️ Check Coupon') {
-    const u = users[chatId] || { coupons: 0, rollover: 0 };
-    bot.sendMessage(chatId, `📊 **Coupon အခြေအနေ စစ်ဆေးပေးထားပါတယ်ရှင့် ✨**\n\n• ရရှိထားသော 500 MMK Coupon: ${u.coupons} ခု 🎟️ (စုစုပေါင်း Discount: ${u.coupons * 500} MMK)\n• လက်ရှိ စုဆောင်းထားသော ပမာဏ: ${u.rollover.toLocaleString()} / 100,000 MMK\n• နောက်ထပ် Coupon ရရန် လိုအပ်သည့် ပမာဏ: ${(100000 - u.rollover).toLocaleString()} MMK`);
+    if (!users[chatId]) {
+      users[chatId] = { totalSpent: 0, coupons: 0, rollover: 0 };
+    }
+    const u = users[chatId];
+    let neededAmount = 100000 - u.rollover;
+    bot.sendMessage(chatId, `📊 **Coupon အခြေအနေ စစ်ဆေးပေးထားပါတယ်ရှင့် ✨**\n\n• ရရှိထားသော 500 MMK Coupon: ${u.coupons} ခု 🎟️ (စုစုပေါင်း Discount: ${(u.coupons * 500).toLocaleString()} MMK)\n• လက်ရှိ စုဆောင်းထားသော ပမာဏ: ${u.rollover.toLocaleString()} / 100,000 MMK\n• နောက်ထပ် Coupon ရရန် လိုအပ်သည့် ပမာဏ: ${neededAmount.toLocaleString()} MMK`);
   } else if (text === '💬 Contact Admin') {
     bot.sendMessage(chatId, '💬 Admin နှင့် တိုက်ရိုက် စကားပြောချင်ပါက အောက်ပါ ခလုတ်လေးကို နှိပ်ပေးပါနော် ✨', {
       reply_markup: {
@@ -189,17 +201,20 @@ bot.on('message', (msg) => {
       }
     });
   } else if (state === 'waiting_game_id' && text) {
-    const u = users[chatId] || { coupons: 0 };
+    if (!users[chatId]) {
+      users[chatId] = { totalSpent: 0, coupons: 0, rollover: 0 };
+    }
+    const u = users[chatId];
     
-    // Customer ထံတွင် Coupon ရှိပါက သုံးမလား/မသုံးဘူးလား မေးမြန်းခြင်း
+    // Customer ထံတွင် Coupon ရှိပါက မေးမြန်းခြင်း
     if (u.coupons > 0) {
       const discountAmount = u.coupons * 500;
       userState[chatId] = { step: 'asking_coupon', gameId: text, discount: discountAmount, count: u.coupons };
       
-      bot.sendMessage(chatId, `🎟️ **သင့်ထံတွင် ${u.coupons} ခုမြောက် Coupon (${discountAmount} MMK Discount) ရှိနေပါတယ်နော်!**\n\nဒီ အော်ဒါအတွက် Discount Coupon ကို အသုံးပြုချင်ပါသလားရှင့်?`, {
+      bot.sendMessage(chatId, `🎟️ **သင့်ထံတွင် ${u.coupons} ခုမြောက် Coupon (${discountAmount.toLocaleString()} MMK Discount) ရှိနေပါတယ်နော်!**\n\nဒီ အော်ဒါအတွက် Discount Coupon ကို အသုံးပြုချင်ပါသလားရှင့်?`, {
         reply_markup: {
           inline_keyboard: [
-            [{ text: `✅ Coupon သုံးမည် (${discountAmount} MMK နှုတ်မည်)`, callback_data: 'use_coupon' }],
+            [{ text: `✅ Coupon သုံးမည် (${discountAmount.toLocaleString()} MMK နှုတ်မည်)`, callback_data: 'use_coupon' }],
             [{ text: '❌ မသုံးပါ (နောက်မှ သုံးမည်)', callback_data: 'skip_coupon' }]
           ]
         }
@@ -226,7 +241,7 @@ bot.on('message', (msg) => {
       }
     };
 
-    let couponStatusText = usedCouponCount > 0 ? `\n• 🎟️ <b>Discount Coupon သုံးထားသည်:</b> ${usedCouponCount * 500} MMK နှုတ်ထားပါသည်` : '';
+    let couponStatusText = usedCouponCount > 0 ? `\n• 🎟️ <b>Discount Coupon သုံးထားသည်:</b> ${(usedCouponCount * 500).toLocaleString()} MMK နှုတ်ထားပါသည်` : '';
     const captionText = `📥 <b>New Order Received!</b>\n\n• Customer ID: <code>${chatId}</code>\n• Game ID / Info: ${gameId}${couponStatusText}`;
 
     if (msg.photo) {
@@ -263,7 +278,7 @@ bot.on('callback_query', (query) => {
     if (st && st.step === 'asking_coupon') {
       userState[chatId] = { step: 'waiting_slip', gameId: st.gameId, usedCoupon: st.count };
       bot.answerCallbackQuery(query.id, { text: 'Coupon အသုံးပြုလိုက်ပါပြီ' });
-      bot.sendMessage(chatId, `🎉 **${st.discount} MMK Discount Coupon အသုံးပြုလိုက်ပါပြီနော်!**\n\nကျေးဇူးပြု၍ ကျသင့်ငွေထဲမှ **${st.discount} MMK နှုတ်ပြီး** ကျန်ရှိသော ပမာဏကို ငွေလွှဲပေးပါရှင့် ✨\n\n📌 **ငွေလွှဲပြီးပါက ငွေလွှဲပြေစာ (Payment Slip) ဓာတ်ပုံ ပို့ပေးပါနော်**`);
+      bot.sendMessage(chatId, `🎉 **${st.discount.toLocaleString()} MMK Discount Coupon အသုံးပြုလိုက်ပါပြီနော်!**\n\nကျေးဇူးပြု၍ ကျသင့်ငွေထဲမှ **${st.discount.toLocaleString()} MMK နှုတ်ပြီး** ကျန်ရှိသော ပမာဏကို ငွေလွှဲပေးပါရှင့် ✨\n\n📌 **ငွေလွှဲပြီးပါက ငွေလွှဲပြေစာ (Payment Slip) ဓာတ်ပုံ ပို့ပေးပါနော်**`);
     }
   } else if (data === 'skip_coupon') {
     const st = userState[chatId];
