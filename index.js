@@ -7,10 +7,22 @@ const bot = new TelegramBot(token, { polling: true });
 
 const users = {};
 const prices = {
-  mlbb: { image: null, text: '💎 **Lucky Top-up MM**\n\n📋 **Mobile Legends Diamond Price List**\n\n🏦 **KBZPay** - 09786048552\n🌊 **WavePay** - 09786048552' },
-  pubg: { image: null, text: '🔫 **Lucky Top-up MM**\n\n📋 **PUBG UC Price List**\n\n🏦 **KBZPay** - 09786048552\n🌊 **WavePay** - 09786048552' },
-  chess: { image: null, text: '♟️ **Lucky Top-up MM**\n\n📋 **Magic Chess Go Go Price List**\n\n🏦 **KBZPay** - 09786048552\n🌊 **WavePay** - 09786048552' },
-  other: { image: null, text: '📦 **Lucky Top-up MM**\n\n📋 **Other Products Price List**\n\n🏦 **KBZPay** - 09786048552\n🌊 **WavePay** - 09786048552' }
+  mlbb: { 
+    image: null, 
+    text: '💎 **Lucky Top-up MM**\n\n📋 **Mobile Legends စိန်ဈေးနှုန်းများ**\n\n🏦 **KBZPay** - 09786048552\n🌊 **WavePay** - 09786048552\n\n📌 **ကျေးဇူးပြု၍ Game ID နှင့် ပက်ကေ့ခ်ျအမျိုးအစားကို ရိုက်ပို့ပေးပါ။**\nသင်၏ Game ID {123456789(12345)}\nဥပမာ - 86 diamond (သို့မဟုတ်) Weekly Pass' 
+  },
+  pubg: { 
+    image: null, 
+    text: '🔫 **Lucky Top-up MM**\n\n📋 **PUBG UC ဈေးနှုန်းများ**\n\n🏦 **KBZPay** - 09786048552\n🌊 **WavePay** - 09786048552\n\n📌 **ကျေးဇူးပြု၍ Character ID နှင့် ပက်ကေ့ခ်ျအမျိုးအစားကို ရိုက်ပို့ပေးပါ။**' 
+  },
+  chess: { 
+    image: null, 
+    text: '♟️ **Lucky Top-up MM**\n\n📋 **Magic Chess Go Go ဈေးနှုန်းများ**\n\n🏦 **KBZPay** - 09786048552\n🌊 **WavePay** - 09786048552\n\n📌 **ကျေးဇူးပြု၍ Game ID နှင့် ပက်ကေ့ခ်ျအမျိုးအစားကို ရိုက်ပို့ပေးပါ။**' 
+  },
+  other: { 
+    image: null, 
+    text: '📦 **Lucky Top-up MM**\n\n📋 **Other Products ဈေးနှုန်းများ**\n\n🏦 **KBZPay** - 09786048552\n🌊 **WavePay** - 09786048552\n\n📌 **ကျေးဇူးပြု၍ ဝယ်ယူလိုသော ပစ္စည်းအမည်ကို ရိုက်ပို့ပေးပါ။**' 
+  }
 };
 
 let userState = {};
@@ -76,12 +88,12 @@ bot.on('message', (msg) => {
     const category = state.replace('waiting_edit_', '');
     if (msg.photo) {
       prices[category].image = msg.photo[msg.photo.length - 1].file_id;
-      prices[category].text = msg.caption || prices[category].text;
+      if (msg.caption) prices[category].text = msg.caption;
     } else if (msg.text) {
       prices[category].text = msg.text;
     }
     userState[chatId] = null;
-    bot.sendMessage(ADMIN_ID, `✅ ${category.toUpperCase()} ဈေးနှုန်း ပြင်ဆင်ပြီးပါပြီ။`);
+    bot.sendMessage(ADMIN_ID, `✅ ${category.toUpperCase()} ဈေးနှုန်းနှင့် ဓာတ်ပုံ ပြင်ဆင်ပြီးပါပြီ။`);
     return;
   }
 
@@ -182,9 +194,9 @@ function sendPrice(chatId, category) {
     }
   };
   if (p.image) {
-    bot.sendPhoto(chatId, p.image, { caption: `${p.text}\n\n📌 **ကျေးဇူးပြု၍ Game ID (သို့မဟုတ်) Package အမျိုးအစားကို ရိုက်ပို့ပေးပါ။**`, ...opts });
+    bot.sendPhoto(chatId, p.image, { caption: p.text, ...opts });
   } else {
-    bot.sendMessage(chatId, `${p.text}\n\n📌 **ကျေးဇူးပြု၍ Game ID (သို့မဟုတ်) Package အမျိုးအစားကို ရိုက်ပို့ပေးပါ။**`, opts);
+    bot.sendMessage(chatId, p.text, opts);
   }
 }
 
@@ -194,7 +206,7 @@ bot.on('callback_query', (query) => {
   if (data.startsWith('edit_')) {
     const category = data.replace('edit_', '');
     userState[ADMIN_ID] = `waiting_edit_${category}`;
-    bot.sendMessage(ADMIN_ID, `✏️ ကျေးဇူးပြု၍ ${category.toUpperCase()} အတွက် ဓာတ်ပုံ (သို့မဟုတ်) ဈေးနှုန်း စာသားအသစ် ပို့ပေးပါ။`);
+    bot.sendMessage(ADMIN_ID, `✏️ ကျေးဇူးပြု၍ ${category.toUpperCase()} အတွက် ဈေးနှုန်း ဓာတ်ပုံ (သို့မဟုတ်) စာသားအသစ် ပို့ပေးပါ။`);
   } else if (data.startsWith('accept_')) {
     const targetId = data.split('_')[1];
     userState[ADMIN_ID] = `accept_${targetId}`;
