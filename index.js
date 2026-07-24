@@ -5,6 +5,14 @@ const ADMIN_ID = parseInt(process.env.ADMIN_ID);
 
 const bot = new TelegramBot(token, { polling: true });
 
+// Error တက်ရင် Bot မရပ်သွားအောင် ကာကွယ်ပေးသည့် စနစ်
+process.on('uncaughtException', (err) => {
+  console.error('Telegram Bot Error:', err);
+});
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection:', reason);
+});
+
 const users = {};
 const prices = {
   mlbb: { 
@@ -177,10 +185,14 @@ bot.on('message', (msg) => {
       }
     };
 
+    const captionText = `📥 <b>New Order Received!</b>\n\n• Customer ID: <code>${chatId}</code>\n• Game ID / Info: ${gameId}`;
+
     bot.sendPhoto(ADMIN_ID, photoId, {
-      caption: `📥 **New Order Received!**\n\n• Customer ID: \`${chatId}\`\n• Game ID / Info: ${gameId}`,
-      parse_mode: 'Markdown',
+      caption: captionText,
+      parse_mode: 'HTML',
       ...adminOpts
+    }).catch(err => {
+      console.error("Failed to send order to admin:", err);
     });
   }
 });
