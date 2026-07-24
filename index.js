@@ -140,7 +140,11 @@ bot.on('message', (msg) => {
     const u = users[chatId] || { coupons: 0, rollover: 0 };
     bot.sendMessage(chatId, `📊 **သင့်၏ Coupon အခြေအနေ**\n\n• ရရှိထားသော 500 MMK Coupon: ${u.coupons} ခု\n• လက်ရှိ စုဆောင်းထားသော ပမာဏ: ${u.rollover.toLocaleString()} / 100,000 MMK\n• နောက်ထပ် Coupon ရရန် လိုအပ်သည့် ပမာဏ: ${(100000 - u.rollover).toLocaleString()} MMK`);
   } else if (text === '💬 Contact Admin') {
-    bot.sendMessage(chatId, '💬 **Admin ထံ တိုက်ရိုက် ဆက်သွယ်ရန်:** @boneyein');
+    bot.sendMessage(chatId, '💬 Admin ထံ တိုက်ရိုက် ဆက်သွယ်ရန် အောက်ပါ ခလုတ်ကို နှိပ်ပါ:', {
+      reply_markup: {
+        inline_keyboard: [[{ text: '📱 Contact Admin Now', url: 'https://t.me/boneyein' }]]
+      }
+    });
   } else if (state === 'waiting_game_id') {
     userState[chatId] = { step: 'waiting_slip', gameId: text };
     bot.sendMessage(chatId, '📌 ကျေးဇူးပြု၍ ငွေလွှဲပြေစာ (Payment Slip) ဓာတ်ပုံ ပို့ပေးပါခင်ဗျာ။');
