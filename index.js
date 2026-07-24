@@ -5,14 +5,17 @@ const ADMIN_ID = parseInt(process.env.ADMIN_ID);
 
 const bot = new TelegramBot(token, { polling: true });
 
-process.on('uncaughtException', (err) => {
-  console.error('Telegram Bot Error:', err);
-});
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection:', reason);
+bot.on('polling_error', (error) => {
+  console.error("Telegram Polling Error Details:", error.code, error.response ? error.response.body : error);
 });
 
-// HTML အထူးသင်္ကေတများကြောင့် Error မတက်စေရန် Safe ဖြစ်အောင် ပြောင်းပေးသည့် စနစ်
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception Error:', err);
+});
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection Error:', reason);
+});
+
 function escapeHTML(str) {
   if (!str) return '';
   return String(str)
@@ -26,19 +29,19 @@ const users = {};
 const prices = {
   mlbb: { 
     image: null, 
-    text: '🌸 **Lucky Top-up MM** 🌸\n\n💎 **Mobile Legends စိန်ဈေးနှုန်းလေးတွေပါနော်** ✨\n\n🏦 **KBZPay** - 09786048552\n🌊 **WavePay** - 09786048552\n\n📌 **Game ID နဲ့ ဝယ်ယူလိုတဲ့ Package လေး ရိုက်ပို့ပေးပါနော်~**\n(ဥပမာ - 86 diamond သို့မဟုတ် Weekly Pass)\nGame ID {123456789(12345)} ပုံစံလေး ပို့ပေးပါနော် သဲတို့ရေ ✨' 
+    text: '🌸 **Lucky Top-up MM** 🌸\n\n💎 **Mobile Legends စိန်ဈေးနှုန်းများ** ✨\n\n🏦 **KBZPay** - 09786048552\n🌊 **WavePay** - 09786048552\n\n📌 **Game ID နှင့် ဝယ်ယူလိုသော Package လေး ရိုက်ပို့ပေးပါနော်**\n(ဥပမာ - 86 diamond သို့မဟုတ် Weekly Pass)\nGame ID {123456789(12345)} ပုံစံလေး ပို့ပေးပါနော် ✨' 
   },
   pubg: { 
     image: null, 
-    text: '🌸 **Lucky Top-up MM** 🌸\n\n🔫 **PUBG UC ဈေးနှုန်းလေးတွေပါရှင့်** ✨\n\n🏦 **KBZPay** - 09786048552\n🌊 **WavePay** - 09786048552\n\n📌 **Character ID နဲ့ UC ပမာဏလေး ရိုက်ပို့ပေးပါနော်~**' 
+    text: '🌸 **Lucky Top-up MM** 🌸\n\n🔫 **PUBG UC ဈေးနှုန်းများ** ✨\n\n🏦 **KBZPay** - 09786048552\n🌊 **WavePay** - 09786048552\n\n📌 **Character ID နှင့် UC ပမာဏလေး ရိုက်ပို့ပေးပါနော်**' 
   },
   chess: { 
     image: null, 
-    text: '🌸 **Lucky Top-up MM** 🌸\n\n♟️ **Magic Chess Go Go ဈေးနှုန်းလေးတွေပါရှင့်** ✨\n\n🏦 **KBZPay** - 09786048552\n🌊 **WavePay** - 09786048552\n\n📌 **Game ID နဲ့ ဝယ်ယူလိုတဲ့ Package လေး ရိုက်ပို့ပေးပါနော်~**' 
+    text: '🌸 **Lucky Top-up MM** 🌸\n\n♟️ **Magic Chess Go Go ဈေးနှုန်းများ** ✨\n\n🏦 **KBZPay** - 09786048552\n🌊 **WavePay** - 09786048552\n\n📌 **Game ID နှင့် ဝယ်ယူလိုသော Package လေး ရိုက်ပို့ပေးပါနော်**' 
   },
   other: { 
     image: null, 
-    text: '🌸 **Lucky Top-up MM** 🌸\n\n📦 **အခြား ဂိမ်း/Services ဈေးနှုန်းလေးတွေပါရှင့်** ✨\n\n🏦 **KBZPay** - 09786048552\n🌊 **WavePay** - 09786048552\n\n📌 **ဝယ်ယူလိုတဲ့ ပစ္စည်း/ဂိမ်းအမည်လေး ရိုက်ပို့ပေးပါနော်~**' 
+    text: '🌸 **Lucky Top-up MM** 🌸\n\n📦 **အခြား ဂိမ်း/Services ဈေးနှုန်းများ** ✨\n\n🏦 **KBZPay** - 09786048552\n🌊 **WavePay** - 09786048552\n\n📌 **ဝယ်ယူလိုသော ပစ္စည်း/ဂိမ်းအမည်လေး ရိုက်ပို့ပေးပါနော်**' 
   }
 };
 
@@ -64,7 +67,7 @@ bot.onText(/\/start/, (msg) => {
     users[chatId] = { totalSpent: 0, coupons: 0, rollover: 0 };
   }
   userState[chatId] = null;
-  bot.sendMessage(chatId, '🌸 Lucky Top-up MM မှ နွေးထွေးစွာ ကြိုဆိုပါတယ်ရှင့် 🎀\nဝယ်ယူလိုတဲ့ ဂိမ်းအမျိုးအစားလေးကို ရွေးချယ်ပေးပါနော်~ ✨', getKeyboard(chatId));
+  bot.sendMessage(chatId, '🌸 Lucky Top-up MM မှ နွေးထွေးစွာ ကြိုဆိုပါတယ်ရှင့် 🎀\nဝယ်ယူလိုသော ဂိမ်းအမျိုးအစားလေးကို ရွေးချယ်ပေးပါနော် ✨', getKeyboard(chatId));
 });
 
 bot.onText(/\/admin/, (msg) => {
@@ -102,7 +105,7 @@ bot.on('message', (msg) => {
   const state = userState[chatId];
 
   // Admin ပြင်ဆင်သည့် အပိုင်း
-  if (chatId === ADMIN_ID && state && state.startsWith('waiting_edit_')) {
+  if (chatId === ADMIN_ID && state && typeof state === 'string' && state.startsWith('waiting_edit_')) {
     const category = state.replace('waiting_edit_', '');
     if (msg.photo) {
       prices[category].image = msg.photo[msg.photo.length - 1].file_id;
@@ -116,7 +119,7 @@ bot.on('message', (msg) => {
   }
 
   // Admin DM ပို့သည့် အပိုင်း
-  if (chatId === ADMIN_ID && state && state.startsWith('dm_')) {
+  if (chatId === ADMIN_ID && state && typeof state === 'string' && state.startsWith('dm_')) {
     const targetId = state.split('_')[1];
     bot.sendMessage(targetId, `💬 **Admin ထံမှ မက်ဆေ့ခ်ျလေးပါရှင့် ✨**\n\n${msg.text}`);
     userState[chatId] = null;
@@ -125,7 +128,7 @@ bot.on('message', (msg) => {
   }
 
   // Admin အော်ဒါ လက်ခံသည့် အပိုင်း
-  if (chatId === ADMIN_ID && state && state.startsWith('accept_')) {
+  if (chatId === ADMIN_ID && state && typeof state === 'string' && state.startsWith('accept_')) {
     const targetId = state.split('_')[1];
     const amount = parseInt(text);
     if (isNaN(amount)) {
@@ -141,6 +144,13 @@ bot.on('message', (msg) => {
     u.totalSpent += amount;
     u.rollover += amount;
 
+    // အော်ဒါ လက်ခံလိုက်ပါက အသုံးပြုထားသော Coupon များကို စာရင်းထဲမှ နှုတ်ပေးခြင်း
+    const usedCoupons = userState[`used_coupon_${targetId}`] || 0;
+    if (usedCoupons > 0) {
+      u.coupons = Math.max(0, u.coupons - usedCoupons);
+      delete userState[`used_coupon_${targetId}`];
+    }
+
     let newCoupons = 0;
     while (u.rollover >= 100000) {
       newCoupons++;
@@ -148,12 +158,12 @@ bot.on('message', (msg) => {
       u.rollover -= 100000;
     }
 
-    let couponMsg = `\n\n🎟️ **Coupon လေးရဲ့ အခြေအနေ:**\n• ခုဝယ်ယူလိုက်တဲ့ ပမာဏ: ${amount.toLocaleString()} MMK\n• နောက်ထပ် Coupon ရဖို့ လိုသေးတဲ့ ပမာဏ: ${(100000 - u.rollover).toLocaleString()} MMK`;
+    let couponMsg = `\n\n🎟️ **Coupon အခြေအနေ:**\n• ဝယ်ယူခဲ့သော ပမာဏ: ${amount.toLocaleString()} MMK\n• နောက်ထပ် Coupon ရရန် လိုအပ်သည့် ပမာဏ: ${(100000 - u.rollover).toLocaleString()} MMK`;
     if (newCoupons > 0) {
-      couponMsg += `\n\n🎉 **ဂုဏ်ယူပါတယ်ရှင့်! 500 MMK Discount Coupon (${newCoupons} ခု) ရရှိထားပါတယ်နော်~ 💕**`;
+      couponMsg += `\n\n🎉 **ဂုဏ်ယူပါတယ်ရှင့်! 500 MMK Discount Coupon (${newCoupons} ခု) အသစ် ထပ်မံရရှိထားပါတယ်နော် 💕**`;
     }
 
-    bot.sendMessage(targetId, `✅ **ငွေလွှဲပြေစာလေး လက်ခံရရှိပါတယ်ရှင့် 💖**\n၁၀ မိနစ်အတွင်း ဂိမ်းအကောင့်ထဲ ထည့်ပေးသွားပါမယ်နော် သဲတို့ရေ~✨${couponMsg}`, {
+    bot.sendMessage(targetId, `✅ **ငွေလွှဲပြေစာလေး လက်ခံရရှိပါတယ်ရှင့် 💖**\n၁၀ မိနစ်အတွင်း ဂိမ်းအကောင့်ထဲ ထည့်ပေးသွားပါမည်နော် ✨${couponMsg}`, {
       reply_markup: {
         inline_keyboard: [[{ text: '💬 Contact Admin', url: 'https://t.me/boneyein' }]]
       }
@@ -171,21 +181,40 @@ bot.on('message', (msg) => {
   else if (text === '📦 Other Products') sendPrice(chatId, 'other');
   else if (text === '🎟️ Check Coupon') {
     const u = users[chatId] || { coupons: 0, rollover: 0 };
-    bot.sendMessage(chatId, `📊 **Coupon အခြေအနေလေး စစ်ဆေးပေးထားပါတယ်ရှင့် ✨**\n\n• ရရှိထားတဲ့ 500 MMK Coupon: ${u.coupons} ခု 🎟️\n• လက်ရှိ စုဆောင်းထားတဲ့ ပမာဏ: ${u.rollover.toLocaleString()} / 100,000 MMK\n• နောက်ထပ် Coupon ရဖို့ လိုသေးတဲ့ ပမာဏ: ${(100000 - u.rollover).toLocaleString()} MMK`);
+    bot.sendMessage(chatId, `📊 **Coupon အခြေအနေ စစ်ဆေးပေးထားပါတယ်ရှင့် ✨**\n\n• ရရှိထားသော 500 MMK Coupon: ${u.coupons} ခု 🎟️ (စုစုပေါင်း Discount: ${u.coupons * 500} MMK)\n• လက်ရှိ စုဆောင်းထားသော ပမာဏ: ${u.rollover.toLocaleString()} / 100,000 MMK\n• နောက်ထပ် Coupon ရရန် လိုအပ်သည့် ပမာဏ: ${(100000 - u.rollover).toLocaleString()} MMK`);
   } else if (text === '💬 Contact Admin') {
-    bot.sendMessage(chatId, '💬 Admin နဲ့ တိုက်ရိုက် စကားပြောချင်ရင် အောက်က ခလုတ်လေးကို နှိပ်ပေးပါနော်~ ✨', {
+    bot.sendMessage(chatId, '💬 Admin နှင့် တိုက်ရိုက် စကားပြောချင်ပါက အောက်ပါ ခလုတ်လေးကို နှိပ်ပေးပါနော် ✨', {
       reply_markup: {
         inline_keyboard: [[{ text: '📱 Contact Admin Now', url: 'https://t.me/boneyein' }]]
       }
     });
   } else if (state === 'waiting_game_id' && text) {
-    userState[chatId] = { step: 'waiting_slip', gameId: text };
-    bot.sendMessage(chatId, '📌 **ကျေးဇူးပြုပြီး ငွေလွှဲပြေစာ (Payment Slip) လေး ပို့ပေးပါဦးနော်~ ✨**');
-  } else if ((msg.photo || msg.document) && state && state.step === 'waiting_slip') {
+    const u = users[chatId] || { coupons: 0 };
+    
+    // Customer ထံတွင် Coupon ရှိပါက သုံးမလား/မသုံးဘူးလား မေးမြန်းခြင်း
+    if (u.coupons > 0) {
+      const discountAmount = u.coupons * 500;
+      userState[chatId] = { step: 'asking_coupon', gameId: text, discount: discountAmount, count: u.coupons };
+      
+      bot.sendMessage(chatId, `🎟️ **သင့်ထံတွင် ${u.coupons} ခုမြောက် Coupon (${discountAmount} MMK Discount) ရှိနေပါတယ်နော်!**\n\nဒီ အော်ဒါအတွက် Discount Coupon ကို အသုံးပြုချင်ပါသလားရှင့်?`, {
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: `✅ Coupon သုံးမည် (${discountAmount} MMK နှုတ်မည်)`, callback_data: 'use_coupon' }],
+            [{ text: '❌ မသုံးပါ (နောက်မှ သုံးမည်)', callback_data: 'skip_coupon' }]
+          ]
+        }
+      });
+    } else {
+      userState[chatId] = { step: 'waiting_slip', gameId: text, usedCoupon: 0 };
+      bot.sendMessage(chatId, '📌 **ကျေးဇူးပြုပြီး ငွေလွှဲပြေစာ (Payment Slip) လေး ပို့ပေးပါဦးနော် ✨**');
+    }
+  } else if ((msg.photo || msg.document) && state && typeof state === 'object' && state.step === 'waiting_slip') {
     const gameId = escapeHTML(state.gameId);
+    const usedCouponCount = state.usedCoupon || 0;
+    userState[`used_coupon_${chatId}`] = usedCouponCount;
     userState[chatId] = null;
 
-    bot.sendMessage(chatId, '✅ **အချက်အလက်နဲ့ ငွေလွှဲပြေစာလေး လက်ခံရရှိပါတယ်ရှင့် ✨**\nစိစစ်နေတာမို့ ခေတ္တလေး စောင့်ဆိုင်းပေးပါနော် သဲတို့ရေ~ 💕');
+    bot.sendMessage(chatId, '✅ **အချက်အလက်နှင့် ငွေလွှဲပြေစာလေး လက်ခံရရှိပါတယ်ရှင့် ✨**\nစိစစ်နေတာမို့ ခေတ္တလေး စောင့်ဆိုင်းပေးပါနော် 💕');
 
     const adminOpts = {
       reply_markup: {
@@ -197,7 +226,8 @@ bot.on('message', (msg) => {
       }
     };
 
-    const captionText = `📥 <b>New Order Received!</b>\n\n• Customer ID: <code>${chatId}</code>\n• Game ID / Info: ${gameId}`;
+    let couponStatusText = usedCouponCount > 0 ? `\n• 🎟️ <b>Discount Coupon သုံးထားသည်:</b> ${usedCouponCount * 500} MMK နှုတ်ထားပါသည်` : '';
+    const captionText = `📥 <b>New Order Received!</b>\n\n• Customer ID: <code>${chatId}</code>\n• Game ID / Info: ${gameId}${couponStatusText}`;
 
     if (msg.photo) {
       const photoId = msg.photo[msg.photo.length - 1].file_id;
@@ -226,8 +256,23 @@ function sendPrice(chatId, category) {
 
 bot.on('callback_query', (query) => {
   const data = query.data;
+  const chatId = query.message.chat.id;
 
-  if (data.startsWith('edit_')) {
+  if (data === 'use_coupon') {
+    const st = userState[chatId];
+    if (st && st.step === 'asking_coupon') {
+      userState[chatId] = { step: 'waiting_slip', gameId: st.gameId, usedCoupon: st.count };
+      bot.answerCallbackQuery(query.id, { text: 'Coupon အသုံးပြုလိုက်ပါပြီ' });
+      bot.sendMessage(chatId, `🎉 **${st.discount} MMK Discount Coupon အသုံးပြုလိုက်ပါပြီနော်!**\n\nကျေးဇူးပြု၍ ကျသင့်ငွေထဲမှ **${st.discount} MMK နှုတ်ပြီး** ကျန်ရှိသော ပမာဏကို ငွေလွှဲပေးပါရှင့် ✨\n\n📌 **ငွေလွှဲပြီးပါက ငွေလွှဲပြေစာ (Payment Slip) ဓာတ်ပုံ ပို့ပေးပါနော်**`);
+    }
+  } else if (data === 'skip_coupon') {
+    const st = userState[chatId];
+    if (st && st.step === 'asking_coupon') {
+      userState[chatId] = { step: 'waiting_slip', gameId: st.gameId, usedCoupon: 0 };
+      bot.answerCallbackQuery(query.id, { text: 'Coupon မသုံးပါ' });
+      bot.sendMessage(chatId, '📌 **ကျေးဇူးပြုပြီး ငွေလွှဲပြေစာ (Payment Slip) လေး ပို့ပေးပါဦးနော် ✨**');
+    }
+  } else if (data.startsWith('edit_')) {
     const category = data.replace('edit_', '');
     userState[ADMIN_ID] = `waiting_edit_${category}`;
     bot.sendMessage(ADMIN_ID, `✏️ ကျေးဇူးပြု၍ ${category.toUpperCase()} အတွက် ဈေးနှုန်း ဓာတ်ပုံ (သို့မဟုတ်) စာသားအသစ် ပို့ပေးပါ။`);
@@ -237,7 +282,7 @@ bot.on('callback_query', (query) => {
     bot.sendMessage(ADMIN_ID, '💰 ဒီ Customer ဝယ်ယူခဲ့သော စုစုပေါင်း ကျသင့်ငွေ (MMK) ကို ဂဏန်းအတိုင်း ရိုက်ထည့်ပါ (ဥပမာ- 45000):');
   } else if (data.startsWith('reject_')) {
     const targetId = data.split('_')[1];
-    bot.sendMessage(targetId, '❌ **စိတ်မကောင်းပါဘူးရှင့်~ သင်၏ ငွေလွှဲပြေစာ မမှန်ကန်ပါသဖြင့် ငွေလက်ခံမှုကို ငြင်းပယ်လိုက်ပါတယ်နော် 🥺**\nအသေးစိတ် သိရှိလိုပါက Admin ထံ ဆက်သွယ်ပေးပါရှင့်။', {
+    bot.sendMessage(targetId, '❌ **စိတ်မကောင်းပါဘူးရှင့် သင်၏ ငွေလွှဲပြေစာ မမှန်ကန်ပါသဖြင့် ငွေလက်ခံမှုကို ငြင်းပယ်လိုက်ပါတယ်နော် 🥺**\nအသေးစိတ် သိရှိလိုပါက Admin ထံ ဆက်သွယ်ပေးပါရှင့်။', {
       reply_markup: {
         inline_keyboard: [[{ text: '💬 Contact Admin', url: 'https://t.me/boneyein' }]]
       }
