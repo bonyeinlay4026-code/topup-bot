@@ -12,11 +12,21 @@ process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection:', reason);
 });
 
+// HTML အထူးသင်္ကေတများကြောင့် Error မတက်စေရန် Safe ဖြစ်အောင် ပြောင်းပေးသည့် စနစ်
+function escapeHTML(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 const users = {};
 const prices = {
   mlbb: { 
     image: null, 
-    text: '🌸 **Lucky Top-up MM** 🌸\n\n💎 **Mobile Legends စိန်ဈေးနှုန်းလေးတွေပါနော်** ✨\n\n🏦 **KBZPay** - 09786048552\n🌊 **WavePay** - 09786048552\n\n📌 **Game ID နဲ့ ဝယ်ယူလိုတဲ့ Package လေး ရိုက်ပို့ပေးပါနော်~**\n(ဥပမာ - 86 diamond သို့မဟုတ် Weekly Pass)\nညီမလေးတို့ Game ID {123456789(12345)} ပုံစံလေး ပို့ပေးပါနော် ရွှေမင်းသားလေးတို့ရေ ✨' 
+    text: '🌸 **Lucky Top-up MM** 🌸\n\n💎 **Mobile Legends စိန်ဈေးနှုန်းလေးတွေပါနော်** ✨\n\n🏦 **KBZPay** - 09786048552\n🌊 **WavePay** - 09786048552\n\n📌 **Game ID နဲ့ ဝယ်ယူလိုတဲ့ Package လေး ရိုက်ပို့ပေးပါနော်~**\n(ဥပမာ - 86 diamond သို့မဟုတ် Weekly Pass)\nGame ID {123456789(12345)} ပုံစံလေး ပို့ပေးပါနော် သဲတို့ရေ ✨' 
   },
   pubg: { 
     image: null, 
@@ -91,6 +101,7 @@ bot.on('message', (msg) => {
 
   const state = userState[chatId];
 
+  // Admin ပြင်ဆင်သည့် အပိုင်း
   if (chatId === ADMIN_ID && state && state.startsWith('waiting_edit_')) {
     const category = state.replace('waiting_edit_', '');
     if (msg.photo) {
@@ -104,6 +115,7 @@ bot.on('message', (msg) => {
     return;
   }
 
+  // Admin DM ပို့သည့် အပိုင်း
   if (chatId === ADMIN_ID && state && state.startsWith('dm_')) {
     const targetId = state.split('_')[1];
     bot.sendMessage(targetId, `💬 **Admin ထံမှ မက်ဆေ့ခ်ျလေးပါရှင့် ✨**\n\n${msg.text}`);
@@ -112,6 +124,7 @@ bot.on('message', (msg) => {
     return;
   }
 
+  // Admin အော်ဒါ လက်ခံသည့် အပိုင်း
   if (chatId === ADMIN_ID && state && state.startsWith('accept_')) {
     const targetId = state.split('_')[1];
     const amount = parseInt(text);
@@ -151,6 +164,7 @@ bot.on('message', (msg) => {
     return;
   }
 
+  // Customer မီနူးများ
   if (text === '🎮 MLBB Diamond') sendPrice(chatId, 'mlbb');
   else if (text === '🎮 PUBG UC') sendPrice(chatId, 'pubg');
   else if (text === '♟️ Magic Chess Go Go') sendPrice(chatId, 'chess');
@@ -164,12 +178,11 @@ bot.on('message', (msg) => {
         inline_keyboard: [[{ text: '📱 Contact Admin Now', url: 'https://t.me/boneyein' }]]
       }
     });
-  } else if (state === 'waiting_game_id') {
+  } else if (state === 'waiting_game_id' && text) {
     userState[chatId] = { step: 'waiting_slip', gameId: text };
     bot.sendMessage(chatId, '📌 **ကျေးဇူးပြုပြီး ငွေလွှဲပြေစာ (Payment Slip) လေး ပို့ပေးပါဦးနော်~ ✨**');
-  } else if (msg.photo && state && state.step === 'waiting_slip') {
-    const photoId = msg.photo[msg.photo.length - 1].file_id;
-    const gameId = state.gameId;
+  } else if ((msg.photo || msg.document) && state && state.step === 'waiting_slip') {
+    const gameId = escapeHTML(state.gameId);
     userState[chatId] = null;
 
     bot.sendMessage(chatId, '✅ **အချက်အလက်နဲ့ ငွေလွှဲပြေစာလေး လက်ခံရရှိပါတယ်ရှင့် ✨**\nစိစစ်နေတာမို့ ခေတ္တလေး စောင့်ဆိုင်းပေးပါနော် သဲတို့ရေ~ 💕');
@@ -186,13 +199,13 @@ bot.on('message', (msg) => {
 
     const captionText = `📥 <b>New Order Received!</b>\n\n• Customer ID: <code>${chatId}</code>\n• Game ID / Info: ${gameId}`;
 
-    bot.sendPhoto(ADMIN_ID, photoId, {
-      caption: captionText,
-      parse_mode: 'HTML',
-      ...adminOpts
-    }).catch(err => {
-      console.error("Failed to send order to admin:", err);
-    });
+    if (msg.photo) {
+      const photoId = msg.photo[msg.photo.length - 1].file_id;
+      bot.sendPhoto(ADMIN_ID, photoId, { caption: captionText, parse_mode: 'HTML', ...adminOpts }).catch(err => console.error(err));
+    } else if (msg.document) {
+      const docId = msg.document.file_id;
+      bot.sendDocument(ADMIN_ID, docId, { caption: captionText, parse_mode: 'HTML', ...adminOpts }).catch(err => console.error(err));
+    }
   }
 });
 
