@@ -7,10 +7,10 @@ const bot = new TelegramBot(token, { polling: true });
 
 const users = {};
 const prices = {
-  mlbb: { image: null, text: '💎 **Lucky Top-up MM**\n\n📋 **Mobile Legends Diamond Price List**\n\n🏦 **KBZPay** - 09786048552\n🌊 **WavePay** - 09786048552\n\n📞 Telegram : @boneyein' },
-  pubg: { image: null, text: '🔫 **Lucky Top-up MM**\n\n📋 **PUBG UC Price List**\n\n🏦 **KBZPay** - 09786048552\n🌊 **WavePay** - 09786048552\n\n📞 Telegram : @boneyein' },
-  chess: { image: null, text: '♟️ **Lucky Top-up MM**\n\n📋 **Magic Chess Go Go Price List**\n\n🏦 **KBZPay** - 09786048552\n🌊 **WavePay** - 09786048552\n\n📞 Telegram : @boneyein' },
-  other: { image: null, text: '📦 **Lucky Top-up MM**\n\n📋 **Other Products Price List**\n\n🏦 **KBZPay** - 09786048552\n🌊 **WavePay** - 09786048552\n\n📞 Telegram : @boneyein' }
+  mlbb: { image: null, text: '💎 **Lucky Top-up MM**\n\n📋 **Mobile Legends Diamond Price List**\n\n🏦 **KBZPay** - 09786048552\n🌊 **WavePay** - 09786048552' },
+  pubg: { image: null, text: '🔫 **Lucky Top-up MM**\n\n📋 **PUBG UC Price List**\n\n🏦 **KBZPay** - 09786048552\n🌊 **WavePay** - 09786048552' },
+  chess: { image: null, text: '♟️ **Lucky Top-up MM**\n\n📋 **Magic Chess Go Go Price List**\n\n🏦 **KBZPay** - 09786048552\n🌊 **WavePay** - 09786048552' },
+  other: { image: null, text: '📦 **Lucky Top-up MM**\n\n📋 **Other Products Price List**\n\n🏦 **KBZPay** - 09786048552\n🌊 **WavePay** - 09786048552' }
 };
 
 let userState = {};
