@@ -3,6 +3,10 @@ const TelegramBot = require('node-telegram-bot-api');
 const token = process.env.BOT_TOKEN;
 const ADMIN_ID = parseInt(process.env.ADMIN_ID);
 
+// 📌 Correct Admin Username (@bonyein)
+const ADMIN_USERNAME = 'bonyein'; 
+const ADMIN_LINK = `https://t.me/${ADMIN_USERNAME}`;
+
 const bot = new TelegramBot(token, { polling: true });
 
 bot.on('polling_error', (error) => {
@@ -41,7 +45,7 @@ const prices = {
   },
   other: { 
     image: null, 
-    text: '🌸 **Lucky Top-up MM** 🌸\n\n📦 **အခြား ဂိမ်း/Services ဈေးနှုန်းများ** ✨\n\n🏦 **KBZPay** - 09786048552\n🌊 **WavePay** - 09786048552\n\n📌 **ဝယ်ယူလိုသော ပစ္စည်း/ဂိမ်းအမည်လေး ရိုက်ပို့ပေးပါနော်**' 
+    text: '🌸 **Lucky Top-up MM - Other Products** 🌸\n\n🎮 **Games Available:**\n• Free Fire (Diamonds / Memberships)\n• Honor of Kings (Tokens / Weekly Card)\n• Genshin Impact (Crystals / Welkin Moon)\n• Honkai: Star Rail (Shards / Supply Pass)\n• Zenless Zone Zero\n\n✨ **Premium Subscriptions:**\n• Telegram Premium\n• Spotify Premium\n• YouTube Premium\n• Discord Nitro\n\n🏦 **KBZPay** - 09786048552\n🌊 **WavePay** - 09786048552\n\n📌 **ဝယ်ယူလိုသော Product အမည် နှင့် Package လေး ရိုက်ပို့ပေးပါနော် ✨**' 
   }
 };
 
@@ -104,7 +108,6 @@ bot.on('message', (msg) => {
 
   const state = userState[chatId];
 
-  // Admin ပြင်ဆင်သည့် အပိုင်း
   if (chatId === ADMIN_ID && state && typeof state === 'string' && state.startsWith('waiting_edit_')) {
     const category = state.replace('waiting_edit_', '');
     if (msg.photo) {
@@ -118,7 +121,6 @@ bot.on('message', (msg) => {
     return;
   }
 
-  // Admin DM ပို့သည့် အပိုင်း
   if (chatId === ADMIN_ID && state && typeof state === 'string' && state.startsWith('dm_')) {
     const targetId = state.split('_')[1];
     bot.sendMessage(targetId, `💬 **Admin ထံမှ မက်ဆေ့ခ်ျလေးပါရှင့် ✨**\n\n${msg.text}`);
@@ -127,7 +129,6 @@ bot.on('message', (msg) => {
     return;
   }
 
-  // Admin အော်ဒါ လက်ခံသည့် အပိုင်း
   if (chatId === ADMIN_ID && state && typeof state === 'string' && state.startsWith('accept_')) {
     const targetId = state.split('_')[1];
     const amount = parseInt(text);
@@ -145,7 +146,6 @@ bot.on('message', (msg) => {
     }
     let u = users[targetId];
 
-    // အော်ဒါ လက်ခံလိုက်ပါက အသုံးပြုထားသော Coupon များကို နှုတ်ပေးခြင်း
     const usedCoupons = userState[`used_coupon_${targetId}`] || 0;
     if (usedCoupons > 0) {
       u.coupons = Math.max(0, u.coupons - usedCoupons);
@@ -155,14 +155,12 @@ bot.on('message', (msg) => {
     u.totalSpent += amount;
     u.rollover += amount;
 
-    // Coupon တွက်ချက်ခြင်း (၁သိန်း ပြည့်တိုင်း ၁ခု ရမည်)
     let newCoupons = 0;
     while (u.rollover >= 100000) {
       newCoupons++;
       u.rollover -= 100000;
     }
 
-    // Customer အကောင့်ထဲသို့ Coupon အသစ်များ ပေါင်းထည့်ပေးခြင်း
     u.coupons += newCoupons;
 
     let neededAmount = 100000 - u.rollover;
@@ -173,7 +171,7 @@ bot.on('message', (msg) => {
 
     bot.sendMessage(targetId, `✅ **ငွေလွှဲပြေစာလေး လက်ခံရရှိပါတယ်ရှင့် 💖**\n၁၀ မိနစ်အတွင်း ဂိမ်းအကောင့်ထဲ ထည့်ပေးသွားပါမည်နော် ✨${couponMsg}`, {
       reply_markup: {
-        inline_keyboard: [[{ text: '💬 Contact Admin', url: 'https://t.me/boneyein' }]]
+        inline_keyboard: [[{ text: '💬 Contact Admin', url: ADMIN_LINK }]]
       }
     });
 
@@ -182,12 +180,13 @@ bot.on('message', (msg) => {
     return;
   }
 
-  // Customer မီနူးများ
+  // Menu Handling
   if (text === '🎮 MLBB Diamond') sendPrice(chatId, 'mlbb');
   else if (text === '🎮 PUBG UC') sendPrice(chatId, 'pubg');
   else if (text === '♟️ Magic Chess Go Go') sendPrice(chatId, 'chess');
   else if (text === '📦 Other Products') sendPrice(chatId, 'other');
   else if (text === '🎟️ Check Coupon') {
+    userState[chatId] = null;
     if (!users[chatId]) {
       users[chatId] = { totalSpent: 0, coupons: 0, rollover: 0 };
     }
@@ -195,9 +194,10 @@ bot.on('message', (msg) => {
     let neededAmount = 100000 - u.rollover;
     bot.sendMessage(chatId, `📊 **Coupon အခြေအနေ စစ်ဆေးပေးထားပါတယ်ရှင့် ✨**\n\n• ရရှိထားသော 500 MMK Coupon: ${u.coupons} ခု 🎟️ (စုစုပေါင်း Discount: ${(u.coupons * 500).toLocaleString()} MMK)\n• လက်ရှိ စုဆောင်းထားသော ပမာဏ: ${u.rollover.toLocaleString()} / 100,000 MMK\n• နောက်ထပ် Coupon ရရန် လိုအပ်သည့် ပမာဏ: ${neededAmount.toLocaleString()} MMK`);
   } else if (text === '💬 Contact Admin') {
-    bot.sendMessage(chatId, '💬 Admin နှင့် တိုက်ရိုက် စကားပြောချင်ပါက အောက်ပါ ခလုတ်လေးကို နှိပ်ပေးပါနော် ✨', {
+    userState[chatId] = null;
+    bot.sendMessage(chatId, `💬 Admin နှင့် တိုက်ရိုက် စကားပြောချင်ပါက အောက်ပါ ခလုတ်လေးကို နှိပ်ပါ သို့မဟုတ် @${ADMIN_USERNAME} သို့ တိုက်ရိုက် စာပို့နိုင်ပါတယ်နော် ✨`, {
       reply_markup: {
-        inline_keyboard: [[{ text: '📱 Contact Admin Now', url: 'https://t.me/boneyein' }]]
+        inline_keyboard: [[{ text: '📱 Contact Admin Now', url: ADMIN_LINK }]]
       }
     });
   } else if (state === 'waiting_game_id' && text) {
@@ -206,7 +206,6 @@ bot.on('message', (msg) => {
     }
     const u = users[chatId];
     
-    // Customer ထံတွင် Coupon ရှိပါက မေးမြန်းခြင်း
     if (u.coupons > 0) {
       const discountAmount = u.coupons * 500;
       userState[chatId] = { step: 'asking_coupon', gameId: text, discount: discountAmount, count: u.coupons };
@@ -259,7 +258,7 @@ function sendPrice(chatId, category) {
   const p = prices[category];
   const opts = {
     reply_markup: {
-      inline_keyboard: [[{ text: '💬 Contact Admin', url: 'https://t.me/boneyein' }]]
+      inline_keyboard: [[{ text: '💬 Contact Admin', url: ADMIN_LINK }]]
     }
   };
   if (p.image) {
@@ -299,7 +298,7 @@ bot.on('callback_query', (query) => {
     const targetId = data.split('_')[1];
     bot.sendMessage(targetId, '❌ **စိတ်မကောင်းပါဘူးရှင့် သင်၏ ငွေလွှဲပြေစာ မမှန်ကန်ပါသဖြင့် ငွေလက်ခံမှုကို ငြင်းပယ်လိုက်ပါတယ်နော် 🥺**\nအသေးစိတ် သိရှိလိုပါက Admin ထံ ဆက်သွယ်ပေးပါရှင့်။', {
       reply_markup: {
-        inline_keyboard: [[{ text: '💬 Contact Admin', url: 'https://t.me/boneyein' }]]
+        inline_keyboard: [[{ text: '💬 Contact Admin', url: ADMIN_LINK }]]
       }
     });
     bot.sendMessage(ADMIN_ID, '❌ Order ငြင်းပယ်ကြောင်း Customer ထံ အကြောင်းကြားလိုက်ပါပြီ။');
