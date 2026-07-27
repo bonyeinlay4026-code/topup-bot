@@ -1,10 +1,13 @@
 {
-  "name": "telegram-topup-bot",
+  "name": "topup-bot",
   "version": "1.0.0",
-  "description": "Telegram TopUp Bot",
+  "description": "Telegram Top-up Bot",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
+  },
+  "engines": {
+    "node": "20.x"
   },
   "dependencies": {
     "node-telegram-bot-api": "^0.66.0"
