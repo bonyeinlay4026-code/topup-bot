@@ -1,4 +1,6 @@
 const TelegramBot = require('node-telegram-bot-api');
+const fs = require('fs');
+const path = require('path');
 
 const token = process.env.BOT_TOKEN;
 const ADMIN_ID = parseInt(process.env.ADMIN_ID);
@@ -7,18 +9,70 @@ const ADMIN_ID = parseInt(process.env.ADMIN_ID);
 const ADMIN_USERNAME = 'bonyein'; 
 const ADMIN_LINK = `https://t.me/${ADMIN_USERNAME}`;
 
+const DB_FILE = path.join(__dirname, 'database.json');
+
+// 💾 Load Initial Data from JSON File
+function loadData() {
+  const defaultData = {
+    users: {},
+    salesData: { today: 0, monthly: 0, totalOrders: 0 },
+    orders: [],
+    prices: {
+      mlbb: { 
+        image: null, 
+        text: '🌸 *Lucky Top-up MM* 🌸\n\n💎 *Mobile Legends စိန်ဈေးနှုန်းများ* ✨\n\n🏦 *KBZPay* - 09786048552\n🌊 *WavePay* - 09786048552\n\n📌 *Game ID နှင့် ဝယ်ယူလိုသော Package လေး ရိုက်ပို့ပေးပါနော်*\n(ဥပမာ - 86 diamond သို့မဟုတ် Weekly Pass)\nGame ID {123456789(12345)} ပုံစံလေး ပို့ပေးပါနော် ✨' 
+      },
+      pubg: { 
+        image: null, 
+        text: '🌸 *Lucky Top-up MM* 🌸\n\n🔫 *PUBG UC ဈေးနှုန်းများ* ✨\n\n🏦 *KBZPay* - 09786048552\n🌊 *WavePay* - 09786048552\n\n📌 *Character ID နှင့် UC ပမာဏလေး ရိုက်ပို့ပေးပါနော်*' 
+      },
+      chess: { 
+        image: null, 
+        text: '🌸 *Lucky Top-up MM* 🌸\n\n♟️ *Magic Chess Go Go ဈေးနှုန်းများ* ✨\n\n🏦 *KBZPay* - 09786048552\n🌊 *WavePay* - 09786048552\n\n📌 *Game ID နှင့် ဝယ်ယူလိုသော Package လေး ရိုက်ပို့ပေးပါနော်*' 
+      },
+      other: { 
+        image: null, 
+        text: '🌸 *Lucky Top-up MM - Other Products* 🌸\n\n🎮 *Games Available:*\n• Free Fire (Diamonds / Memberships)\n• Honor of Kings (Tokens / Weekly Card)\n• Genshin Impact (Crystals / Welkin Moon)\n• Honkai: Star Rail (Shards / Supply Pass)\n• Zenless Zone Zero\n\n🏦 *KBZPay* - 09786048552\n🌊 *WavePay* - 09786048552\n\n📌 *ဝယ်ယူလိုသော Product အမည် နှင့် Package လေး ရိုက်ပို့ပေးပါနော် ✨*' 
+      },
+      premium: {
+        image: null,
+        text: '🌸 *Lucky Top-up MM - Premium Subscriptions* 🌸\n\n✨ *Available Services:*\n• Telegram Premium (1 Month / 3 Months / 1 Year)\n• Spotify Premium (1 Month / 3 Months)\n• YouTube Premium (1 Month / Family Plan)\n• Discord Nitro (Basic / Boost)\n\n🏦 *KBZPay* - 09786048552\n🌊 *WavePay* - 09786048552\n\n📌 *ဝယ်ယူလိုသော Premium Plan နှင့် Telegram Username / Account အချက်အလက်များ ရိုက်ပို့ပေးပါနော် ✨*'
+      }
+    }
+  };
+
+  if (!fs.existsSync(DB_FILE)) {
+    fs.writeFileSync(DB_FILE, JSON.stringify(defaultData, null, 2));
+    return defaultData;
+  }
+
+  try {
+    const raw = fs.readFileSync(DB_FILE);
+    const parsed = JSON.parse(raw);
+    return { ...defaultData, ...parsed };
+  } catch (err) {
+    console.error("Error reading DB file, starting fresh:", err);
+    return defaultData;
+  }
+}
+
+// 💾 Save Memory to File System
+function saveData() {
+  const data = { users, salesData, orders, prices };
+  fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
+}
+
+let { users, salesData, orders, prices } = loadData();
+let userState = {};
+
 const bot = new TelegramBot(token, { polling: true });
 
 bot.on('polling_error', (error) => {
   console.error("Telegram Polling Error Details:", error.code, error.response ? error.response.body : error);
 });
 
-process.on('uncaughtException', (err) => {
-  console.error('Uncaught Exception Error:', err);
-});
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection Error:', reason);
-});
+process.on('uncaughtException', (err) => console.error('Uncaught Exception Error:', err));
+process.on('unhandledRejection', (reason, promise) => console.error('Unhandled Rejection Error:', reason));
 
 function escapeHTML(str) {
   if (!str) return '';
@@ -28,33 +82,6 @@ function escapeHTML(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 }
-
-const users = {};
-const prices = {
-  mlbb: { 
-    image: null, 
-    text: '🌸 *Lucky Top-up MM* 🌸\n\n💎 *Mobile Legends စိန်ဈေးနှုန်းများ* ✨\n\n🏦 *KBZPay* - 09786048552\n🌊 *WavePay* - 09786048552\n\n📌 *Game ID နှင့် ဝယ်ယူလိုသော Package လေး ရိုက်ပို့ပေးပါနော်*\n(ဥပမာ - 86 diamond သို့မဟုတ် Weekly Pass)\nGame ID {123456789(12345)} ပုံစံလေး ပို့ပေးပါနော် ✨' 
-  },
-  pubg: { 
-    image: null, 
-    text: '🌸 *Lucky Top-up MM* 🌸\n\n🔫 *PUBG UC ဈေးနှုန်းများ* ✨\n\n🏦 *KBZPay* - 09786048552\n🌊 *WavePay* - 09786048552\n\n📌 *Character ID နှင့် UC ပမာဏလေး ရိုက်ပို့ပေးပါနော်*' 
-  },
-  chess: { 
-    image: null, 
-    text: '🌸 *Lucky Top-up MM* 🌸\n\n♟️ *Magic Chess Go Go ဈေးနှုန်းများ* ✨\n\n🏦 *KBZPay* - 09786048552\n🌊 *WavePay* - 09786048552\n\n📌 *Game ID နှင့် ဝယ်ယူလိုသော Package လေး ရိုက်ပို့ပေးပါနော်*' 
-  },
-  other: { 
-    image: null, 
-    text: '🌸 *Lucky Top-up MM - Other Products* 🌸\n\n🎮 *Games Available:*\n• Free Fire (Diamonds / Memberships)\n• Honor of Kings (Tokens / Weekly Card)\n• Genshin Impact (Crystals / Welkin Moon)\n• Honkai: Star Rail (Shards / Supply Pass)\n• Zenless Zone Zero\n\n🏦 *KBZPay* - 09786048552\n🌊 *WavePay* - 09786048552\n\n📌 *ဝယ်ယူလိုသော Product အမည် နှင့် Package လေး ရိုက်ပို့ပေးပါနော် ✨*' 
-  },
-  premium: {
-    image: null,
-    text: '🌸 *Lucky Top-up MM - Premium Subscriptions* 🌸\n\n✨ *Available Services:*\n• Telegram Premium (1 Month / 3 Months / 1 Year)\n• Spotify Premium (1 Month / 3 Months)\n• YouTube Premium (1 Month / Family Plan)\n• Discord Nitro (Basic / Boost)\n\n🏦 *KBZPay* - 09786048552\n🌊 *WavePay* - 09786048552\n\n📌 *ဝယ်ယူလိုသော Premium Plan နှင့် Telegram Username / Account အချက်အလက်များ ရိုက်ပို့ပေးပါနော် ✨*'
-  }
-};
-
-let userState = {};
-let salesData = { today: 0, monthly: 0, totalOrders: 0 };
 
 function getKeyboard(chatId) {
   return {
@@ -75,6 +102,7 @@ bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
   if (!users[chatId]) {
     users[chatId] = { totalSpent: 0, coupons: 0, rollover: 0 };
+    saveData();
   }
   userState[chatId] = null;
   bot.sendMessage(chatId, '🌸 Lucky Top-up MM မှ နွေးထွေးစွာ ကြိုဆိုပါတယ်ရှင့် 🎀\nဝယ်ယူလိုသော ဂိမ်း (သို့မဟုတ်) Service အကြောင်းအရာလေးကို ရွေးချယ်ပေးပါနော် ✨', getKeyboard(chatId));
@@ -124,6 +152,7 @@ bot.on('message', (msg) => {
     } else if (msg.text) {
       prices[category].text = msg.text;
     }
+    saveData();
     userState[chatId] = null;
     bot.sendMessage(ADMIN_ID, `✅ ${category.toUpperCase()} ဈေးနှုန်းနှင့် ဓာတ်ပုံ ပြင်ဆင်ပြီးပါပြီ။`);
     return;
@@ -171,6 +200,17 @@ bot.on('message', (msg) => {
 
     u.coupons += newCoupons;
 
+    // Save Order History
+    orders.push({
+      orderId: Date.now(),
+      chatId: targetId,
+      amount: amount,
+      usedCoupons: usedCoupons,
+      date: new Date().toISOString()
+    });
+
+    saveData(); // Save Database Changes
+
     let neededAmount = 100000 - u.rollover;
     let couponMsg = `\n\n🎟️ *Coupon အခြေအနေ:*\n• ဝယ်ယူခဲ့သော ပမာဏ: ${amount.toLocaleString()} MMK\n• နောက်ထပ် Coupon ရရန် လိုအပ်သည့် ပမာဏ: ${neededAmount.toLocaleString()} MMK`;
     if (newCoupons > 0) {
@@ -199,6 +239,7 @@ bot.on('message', (msg) => {
     userState[chatId] = null;
     if (!users[chatId]) {
       users[chatId] = { totalSpent: 0, coupons: 0, rollover: 0 };
+      saveData();
     }
     const u = users[chatId];
     let neededAmount = 100000 - u.rollover;
@@ -213,6 +254,7 @@ bot.on('message', (msg) => {
   } else if (state === 'waiting_game_id' && text) {
     if (!users[chatId]) {
       users[chatId] = { totalSpent: 0, coupons: 0, rollover: 0 };
+      saveData();
     }
     const u = users[chatId];
     
@@ -239,7 +281,6 @@ bot.on('message', (msg) => {
     userState[`used_coupon_${chatId}`] = usedCouponCount;
     userState[chatId] = null;
 
-    // 👤 Extract Buyer's Telegram Info
     const firstName = msg.from.first_name ? escapeHTML(msg.from.first_name) : '';
     const lastName = msg.from.last_name ? escapeHTML(msg.from.last_name) : '';
     const fullName = `${firstName} ${lastName}`.trim() || 'No Name';
