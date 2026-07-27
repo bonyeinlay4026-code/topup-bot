@@ -1,13 +1,46 @@
 const TelegramBot = require('node-telegram-bot-api');
+const fs = require('fs');
+const path = require('path');
 
 const token = process.env.BOT_TOKEN;
 const ADMIN_ID = parseInt(process.env.ADMIN_ID);
 
-// 📌 Correct Admin Username (@bonyein)
 const ADMIN_USERNAME = 'bonyein'; 
 const ADMIN_LINK = `https://t.me/${ADMIN_USERNAME}`;
 
 const bot = new TelegramBot(token, { polling: true });
+
+// --- DATA PERSISTENCE (Data မပျောက်စေရန် File ဖြင့် သိမ်းဆည်းသည့် စနစ်) ---
+const DATA_FILE = path.join(__dirname, 'data.json');
+
+let users = {};
+let salesData = { today: 0, monthly: 0, totalOrders: 0 };
+
+function loadData() {
+  try {
+    if (fs.existsSync(DATA_FILE)) {
+      const raw = fs.readFileSync(DATA_FILE, 'utf8');
+      const parsed = JSON.parse(raw);
+      users = parsed.users || {};
+      salesData = parsed.salesData || { today: 0, monthly: 0, totalOrders: 0 };
+      console.log('✅ Data loaded successfully from data.json');
+    }
+  } catch (err) {
+    console.error('Error loading data.json:', err);
+  }
+}
+
+function saveData() {
+  try {
+    const dataToSave = { users, salesData };
+    fs.writeFileSync(DATA_FILE, JSON.stringify(dataToSave, null, 2), 'utf8');
+  } catch (err) {
+    console.error('Error saving data.json:', err);
+  }
+}
+
+// Load existing data at startup
+loadData();
 
 bot.on('polling_error', (error) => {
   console.error("Telegram Polling Error Details:", error.code, error.response ? error.response.body : error);
@@ -29,7 +62,6 @@ function escapeHTML(str) {
     .replace(/"/g, '&quot;');
 }
 
-const users = {};
 const prices = {
   mlbb: { 
     image: null, 
@@ -50,7 +82,6 @@ const prices = {
 };
 
 let userState = {};
-let salesData = { today: 0, monthly: 0, totalOrders: 0 };
 
 function getKeyboard(chatId) {
   return {
@@ -69,6 +100,7 @@ bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
   if (!users[chatId]) {
     users[chatId] = { totalSpent: 0, coupons: 0, rollover: 0 };
+    saveData();
   }
   userState[chatId] = null;
   bot.sendMessage(chatId, '🌸 Lucky Top-up MM မှ နွေးထွေးစွာ ကြိုဆိုပါတယ်ရှင့် 🎀\nဝယ်ယူလိုသော ဂိမ်းအမျိုးအစားလေးကို ရွေးချယ်ပေးပါနော် ✨', getKeyboard(chatId));
@@ -162,6 +194,7 @@ bot.on('message', (msg) => {
     }
 
     u.coupons += newCoupons;
+    saveData(); // Save changes immediately
 
     let neededAmount = 100000 - u.rollover;
     let couponMsg = `\n\n🎟️ **Coupon အခြေအနေ:**\n• ဝယ်ယူခဲ့သော ပမာဏ: ${amount.toLocaleString()} MMK\n• နောက်ထပ် Coupon ရရန် လိုအပ်သည့် ပမာဏ: ${neededAmount.toLocaleString()} MMK`;
@@ -189,6 +222,7 @@ bot.on('message', (msg) => {
     userState[chatId] = null;
     if (!users[chatId]) {
       users[chatId] = { totalSpent: 0, coupons: 0, rollover: 0 };
+      saveData();
     }
     const u = users[chatId];
     let neededAmount = 100000 - u.rollover;
@@ -203,6 +237,7 @@ bot.on('message', (msg) => {
   } else if (state === 'waiting_game_id' && text) {
     if (!users[chatId]) {
       users[chatId] = { totalSpent: 0, coupons: 0, rollover: 0 };
+      saveData();
     }
     const u = users[chatId];
     
