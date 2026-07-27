@@ -5,13 +5,11 @@ const path = require('path');
 const token = process.env.BOT_TOKEN;
 const ADMIN_ID = parseInt(process.env.ADMIN_ID);
 
-// 📌 Correct Admin Username (@bonyein)
 const ADMIN_USERNAME = 'bonyein'; 
 const ADMIN_LINK = `https://t.me/${ADMIN_USERNAME}`;
 
 const DB_FILE = path.join(__dirname, 'database.json');
 
-// 💾 Load Initial Data from JSON File
 function loadData() {
   const defaultData = {
     users: {},
@@ -48,15 +46,12 @@ function loadData() {
 
   try {
     const raw = fs.readFileSync(DB_FILE);
-    const parsed = JSON.parse(raw);
-    return { ...defaultData, ...parsed };
+    return { ...defaultData, ...JSON.parse(raw) };
   } catch (err) {
-    console.error("Error reading DB file, starting fresh:", err);
     return defaultData;
   }
 }
 
-// 💾 Save Memory to File System
 function saveData() {
   const data = { users, salesData, orders, prices };
   fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
@@ -65,14 +60,30 @@ function saveData() {
 let { users, salesData, orders, prices } = loadData();
 let userState = {};
 
-const bot = new TelegramBot(token, { polling: true });
-
-bot.on('polling_error', (error) => {
-  console.error("Telegram Polling Error Details:", error.code, error.response ? error.response.body : error);
+// 📌 Optimized Polling Options to fix EFATAL Error
+const bot = new TelegramBot(token, {
+  polling: {
+    interval: 300,
+    autoStart: true,
+    params: {
+      timeout: 10
+    }
+  }
 });
 
-process.on('uncaughtException', (err) => console.error('Uncaught Exception Error:', err));
-process.on('unhandledRejection', (reason, promise) => console.error('Unhandled Rejection Error:', reason));
+// Clear Webhook before starting Polling
+bot.deleteWebhook().then(() => {
+  console.log("Cleared webhooks successfully.");
+}).catch((err) => {
+  console.error("Webhook deletion error:", err.message);
+});
+
+bot.on('polling_error', (error) => {
+  console.error("Polling Error caught:", error.code || error.message);
+});
+
+process.on('uncaughtException', (err) => console.error('Uncaught Exception:', err.message));
+process.on('unhandledRejection', (reason) => console.error('Unhandled Rejection:', reason));
 
 function escapeHTML(str) {
   if (!str) return '';
@@ -200,7 +211,6 @@ bot.on('message', (msg) => {
 
     u.coupons += newCoupons;
 
-    // Save Order History
     orders.push({
       orderId: Date.now(),
       chatId: targetId,
@@ -209,7 +219,7 @@ bot.on('message', (msg) => {
       date: new Date().toISOString()
     });
 
-    saveData(); // Save Database Changes
+    saveData();
 
     let neededAmount = 100000 - u.rollover;
     let couponMsg = `\n\n🎟️ *Coupon အခြေအနေ:*\n• ဝယ်ယူခဲ့သော ပမာဏ: ${amount.toLocaleString()} MMK\n• နောက်ထပ် Coupon ရရန် လိုအပ်သည့် ပမာဏ: ${neededAmount.toLocaleString()} MMK`;
