@@ -1,35 +1,16 @@
-const TelegramBot = require('node-telegram-bot-api');
-const express = require('express');
+// Environment Variables ထဲက Token ကို ယူပါ
+const token = process.env.BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN;
 
-const token = process.env.BOT_TOKEN;
-const app = express();
-app.use(express.json());
-
-const PORT = process.env.PORT || 3000;
-const URL = process.env.RENDER_EXTERNAL_URL;
-
-let bot;
-
-if (process.env.NODE_ENV === 'production' && URL) {
-  bot = new TelegramBot(token);
-  bot.setWebHook(`${URL}/bot${token}`);
-  
-  app.post(`/bot${token}`, (req, res) => {
-    bot.processUpdate(req.body);
-    res.sendStatus(200);
-  });
-} else {
-  bot = new TelegramBot(token, { polling: true });
+// Token မရှိရင် Process ကို ချက်ချင်း ရပ်ပစ်ပါ
+if (!token) {
+  console.error("❌ Error: Render Environment ထဲမှာ BOT_TOKEN မရှိသေးပါ။");
+  console.error("👉 ကျေးဇူးပြု၍ Render Dashboard -> Environment ထဲမှာ BOT_TOKEN ကို ထည့်ပေးပါ။");
+  process.exit(1);
 }
 
-bot.onText(/\/start/, (msg) => {
-  bot.sendMessage(msg.chat.id, "Hello! Bot is working perfectly.");
-});
+// Token ရှိမှ Bot ကို Init လုပ်ပါ
+const TelegramBot = require('node-telegram-bot-api');
+const bot = new TelegramBot(token, { polling: false });
 
-app.get('/', (req, res) => {
-  res.send('Bot Server is Running!');
-});
+0
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
