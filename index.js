@@ -96,9 +96,6 @@ const bot = new TelegramBot(token, {
   }
 });
 
-// bot.deleteWebHook().then(() => {
-  console.log("Cleared webhooks successfully.");
-}).catch((err) => {
   console.error("Webhook deletion error:", err.message);
 });
 
