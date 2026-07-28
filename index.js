@@ -5,7 +5,7 @@ const path = require('path');
 
 const token = process.env.BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN;
 
-// Admin Telegram ID ထည့်သွင်းထားပါသည်
+// Admin Telegram ID
 const ADMIN_ID = 2146542086; 
 
 const ADMIN_USERNAME = 'bonyein'; 
@@ -43,6 +43,10 @@ function loadData() {
         image: null, 
         text: '🌸 *Lucky Top-up MM* 🌸\n\n♟️ *Magic Chess Go Go ဈေးနှုန်းများ* ✨\n\n🏦 *KBZPay* - 09786048552\n🌊 *WavePay* - 09786048552\n\n📌 *Game ID နှင့် ဝယ်ယူလိုသော Package လေး ရိုက်ပို့ပေးပါနော်*' 
       },
+      premium: {
+        image: null,
+        text: '🌸 *Lucky Top-up MM* 🌸\n\n⭐ *Telegram Premium ဈေးနှုန်းများ* ✨\n\n• 3 Months Premium - ..... MMK\n• 6 Months Premium - ..... MMK\n• 12 Months Premium - ..... MMK\n\n🏦 *KBZPay* - 09786048552\n🌊 *WavePay* - 09786048552\n\n📌 *ဝယ်ယူလိုသော Month နှင့် Telegram Phone Number (သို့မဟုတ်) Username ပို့ပေးပါနော် ✨*'
+      },
       other: { 
         image: null, 
         text: '🌸 *Lucky Top-up MM - Other Products* 🌸\n\n🎮 *Games Available:*\n• Free Fire\n• Honor of Kings\n• Genshin Impact\n• Honkai: Star Rail\n• Zenless Zone Zero\n\n🏦 *KBZPay* - 09786048552\n🌊 *WavePay* - 09786048552\n\n📌 *ဝယ်ယူလိုသော Product အမည် နှင့် Package လေး ရိုက်ပို့ပေးပါနော် ✨*' 
@@ -57,7 +61,14 @@ function loadData() {
 
   try {
     const raw = fs.readFileSync(DB_FILE);
-    return { ...defaultData, ...JSON.parse(raw) };
+    const parsed = JSON.parse(raw);
+    
+    // Ensure premium exists in loaded data if database was already created
+    if (parsed.prices && !parsed.prices.premium) {
+      parsed.prices.premium = defaultData.prices.premium;
+    }
+
+    return { ...defaultData, ...parsed };
   } catch (err) {
     return defaultData;
   }
@@ -111,8 +122,9 @@ function getKeyboard(chatId) {
     reply_markup: {
       keyboard: [
         [{ text: '🎮 MLBB Diamond' }, { text: '🎮 PUBG UC' }],
-        [{ text: '♟️ Magic Chess Go Go' }, { text: '📦 Other Products' }],
-        [{ text: '🎟️ Check Coupon' }, { text: '💬 Contact Admin' }]
+        [{ text: '♟️ Magic Chess Go Go' }, { text: '⭐ Telegram Premium' }],
+        [{ text: '📦 Other Products' }, { text: '🎟️ Check Coupon' }],
+        [{ text: '💬 Contact Admin' }]
       ],
       resize_keyboard: true,
       persistent: true
@@ -143,6 +155,7 @@ bot.onText(/\/admin/, (msg) => {
         [{ text: '✏️ Edit MLBB', callback_data: 'edit_mlbb' }, { text: '👁️ View MLBB', callback_data: 'view_mlbb' }],
         [{ text: '✏️ Edit PUBG', callback_data: 'edit_pubg' }, { text: '👁️ View PUBG', callback_data: 'view_pubg' }],
         [{ text: '✏️ Edit Chess', callback_data: 'edit_chess' }, { text: '👁️ View Chess', callback_data: 'view_chess' }],
+        [{ text: '✏️ Edit Premium', callback_data: 'edit_premium' }, { text: '👁️ View Premium', callback_data: 'view_premium' }],
         [{ text: '✏️ Edit Other', callback_data: 'edit_other' }, { text: '👁️ View Other', callback_data: 'view_other' }]
       ]
     },
@@ -262,6 +275,7 @@ bot.on('message', (msg) => {
   if (text === '🎮 MLBB Diamond') sendPrice(chatId, 'mlbb');
   else if (text === '🎮 PUBG UC') sendPrice(chatId, 'pubg');
   else if (text === '♟️ Magic Chess Go Go') sendPrice(chatId, 'chess');
+  else if (text === '⭐ Telegram Premium') sendPrice(chatId, 'premium');
   else if (text === '📦 Other Products') sendPrice(chatId, 'other');
   else if (text === '🎟️ Check Coupon') {
     userState[chatId] = null;
