@@ -1,11 +1,24 @@
 const TelegramBot = require('node-telegram-bot-api');
 const fs = require('fs');
 const path = require('path');
+const express = require('express');
+
+// Express Server Setup (Render Free Tier မအိပ်စေရန် နှင့် Health Check အတွက်)
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.get('/', (req, res) => {
+  res.send('🌸 Lucky Top-up MM Bot is running smoothly on Render!');
+});
+
+app.listen(PORT, () => {
+  console.log(`Web Server started on port ${PORT}`);
+});
 
 const token = process.env.BOT_TOKEN;
 const ADMIN_ID = parseInt(process.env.ADMIN_ID);
 
-const ADMIN_USERNAME = 'bonyein'; 
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'bonyein'; 
 const ADMIN_LINK = `https://t.me/${ADMIN_USERNAME}`;
 
 const DB_FILE = path.join(__dirname, 'database.json');
@@ -40,7 +53,11 @@ function loadData() {
   };
 
   if (!fs.existsSync(DB_FILE)) {
-    fs.writeFileSync(DB_FILE, JSON.stringify(defaultData, null, 2));
+    try {
+      fs.writeFileSync(DB_FILE, JSON.stringify(defaultData, null, 2));
+    } catch (e) {
+      console.error("Database File creation error:", e.message);
+    }
     return defaultData;
   }
 
@@ -53,14 +70,22 @@ function loadData() {
 }
 
 function saveData() {
-  const data = { users, salesData, orders, prices };
-  fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
+  try {
+    const data = { users, salesData, orders, prices };
+    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
+  } catch (e) {
+    console.error("Database Save Error:", e.message);
+  }
 }
 
 let { users, salesData, orders, prices } = loadData();
 let userState = {};
 
-// 📌 Optimized Polling Options to fix EFATAL Error
+if (!token) {
+  console.error("FATAL ERROR: BOT_TOKEN is missing in Environment Variables!");
+  process.exit(1);
+}
+
 const bot = new TelegramBot(token, {
   polling: {
     interval: 300,
@@ -71,8 +96,7 @@ const bot = new TelegramBot(token, {
   }
 });
 
-// Clear Webhook before starting Polling
-bot.deleteWebhook().then(() => {
+// bot.deleteWebHook().then(() => {
   console.log("Cleared webhooks successfully.");
 }).catch((err) => {
   console.error("Webhook deletion error:", err.message);
@@ -378,3 +402,6 @@ bot.on('callback_query', (query) => {
     bot.sendMessage(ADMIN_ID, '✉️ Customer ထံ ပို့လိုသော စာကို ရိုက်ထည့်ပါ:');
   }
 });
+
+0
+
