@@ -49,7 +49,7 @@ function loadData() {
       },
       other: { 
         image: null, 
-        text: '🌸 *Lucky Top-up MM - Other Products* 🌸\n\n🎮 *Games Available:*\n• Free Fire\n• Honor of Kings\n• Genshin Impact\n• Honkai: Star Rail\n• Zenless Zone Zero\n\n🏦 *KBZPay* - 09786048552\n🌊 *WavePay* - 09786048552\n\n📌 *ဝယ်ယူလိုသော Product အမည် နှင့် Package လေး ရိုက်ပို့ပေးပါနော် ✨*' 
+        text: '🌸 *Lucky Top-up MM - Other Products* 🌸\n\n🎮 *Games & Services Available:*\n• Free Fire\n• Honor of Kings\n• Genshin Impact\n• Honkai: Star Rail\n• Zenless Zone Zero\n\n📌 *ဆက်လက်ဝယ်ယူလိုပါက အောက်ပါခလုတ်ကိုနှိပ်၍ Admin ထံသို့ တိုက်ရိုက်ဆက်သွယ်ဝယ်ယူနိုင်ပါတယ်ရှင့် ✨*' 
       }
     }
   };
@@ -278,7 +278,7 @@ bot.on('message', (msg) => {
   else if (text === '🎮 PUBG UC') sendCategoryOptions(chatId, 'pubg', 'PUBG UC');
   else if (text === '♟️ Magic Chess Go Go') sendCategoryOptions(chatId, 'chess', 'Magic Chess Go Go');
   else if (text === '⭐ Telegram Premium') sendCategoryOptions(chatId, 'premium', 'Telegram Premium');
-  else if (text === '📦 Other Products') sendCategoryOptions(chatId, 'other', 'Other Products');
+  else if (text === '📦 Other Products') sendOtherProducts(chatId);
   else if (text === '🎟️ Check Coupon') {
     userState[chatId] = null;
     if (!users[chatId]) {
@@ -374,6 +374,24 @@ function sendCategoryOptions(chatId, category, title) {
   bot.sendMessage(chatId, `✨ *${title}* ဝန်ဆောင်မှုမှ ကြိုဆိုပါတယ်ရှင့်။\nအောက်ပါခလုတ်များမှ လိုအပ်သည်ကို ရွေးချယ်ပါ 👇`, opts);
 }
 
+function sendOtherProducts(chatId) {
+  userState[chatId] = null;
+  const p = prices.other;
+  const opts = {
+    parse_mode: 'Markdown',
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: '💬 ဆက်လက်ဝယ်ယူရန် (Admin ဆက်သွယ်ရန်)', url: ADMIN_LINK }]
+      ]
+    }
+  };
+  if (p.image) {
+    bot.sendPhoto(chatId, p.image, { caption: p.text, ...opts });
+  } else {
+    bot.sendMessage(chatId, p.text, opts);
+  }
+}
+
 function sendPrice(chatId, category) {
   const p = prices[category];
   const opts = {
@@ -410,8 +428,6 @@ bot.on('callback_query', (query) => {
       promptText = '📌 *ကျေးဇူးပြု၍ Character ID နှင့် UC ပမာဏလေး ရိုက်ပို့ပေးပါနော် ✨*';
     } else if (category === 'premium') {
       promptText = '📌 *ဝယ်ယူလိုသော Month နှင့် Telegram Phone Number (သို့မဟုတ်) Username ပို့ပေးပါနော် ✨*';
-    } else if (category === 'other') {
-      promptText = '📌 *ဝယ်ယူလိုသော Product အမည် နှင့် Package လေး ရိုက်ပို့ပေးပါနော် ✨*';
     }
     
     bot.sendMessage(chatId, promptText, { parse_mode: 'Markdown' });
@@ -446,7 +462,7 @@ bot.on('callback_query', (query) => {
   } else if (data.startsWith('reject_')) {
     const targetId = data.split('_')[1];
     bot.answerCallbackQuery(query.id);
-    bot.sendMessage(targetId, '❌ *စိတ်မကောင်းပါဘူးရှင့် သင်၏ ငွေလွှဲပြေစာ မမှန်ကန်ပါသဖြင့် ငွေလက်ခံမှုကို ငြင်းပယ်လိုက်ပါတယ်နော် 🥺*\nအသေးစိတ် သိရှိလိုပါက Admin က တိုက်ရိုက် ဆက်သွယ်ပေးပါမည်။', {
+    bot.sendMessage(targetId, '❌ *စိတ်မကောင်းပါဘူးရှင့် သင်၏ ငွေလွှဲပြေစာ မမှန်ကန်ပါသဖြင့် ငွေလက်ခံမှုကို ငြင်းပယ်လိုက်ပါတယ်နော် 🥺*\nအသေးစိတ် သိရှိလိုပါက Admin ထံ ဆက်သွယ်ပေးပါရှင့်။', {
       parse_mode: 'Markdown',
       reply_markup: {
         inline_keyboard: [[{ text: '💬 Contact Admin', url: ADMIN_LINK }]]
