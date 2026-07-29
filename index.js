@@ -62,12 +62,9 @@ function loadData() {
   try {
     const raw = fs.readFileSync(DB_FILE);
     const parsed = JSON.parse(raw);
-    
-    // Ensure premium exists in loaded data if database was already created
     if (parsed.prices && !parsed.prices.premium) {
       parsed.prices.premium = defaultData.prices.premium;
     }
-
     return { ...defaultData, ...parsed };
   } catch (err) {
     return defaultData;
@@ -343,7 +340,7 @@ bot.on('message', (msg) => {
     };
 
     let couponStatusText = usedCouponCount > 0 ? `\n• 🎟️ <b>Discount Coupon သုံးထားသည်:</b> ${(usedCouponCount * 500).toLocaleString()} MMK နှုတ်ထားပါသည်` : '';
-    const captionText = `📥 <b>New Order Received!</b>\n\n• 👤 <b>Customer Name:</b> ${fullName}\n• 🔗 <b>Username:</b> ${username}\n• 🆔 <b>Customer ID:</b> <code>${chatId}</code>\n• 🎮 <b>Game ID / Info:</b> ${gameId}${couponStatusText}`;
+    const captionText = `📥 <b>New Order Received!</b>\n\n• 👤 <b>Telegram Name:</b> ${fullName}\n• 🔗 <b>Username:</b> ${username}\n• 🆔 <b>Customer ID:</b> <code>${chatId}</code>\n• 🎮 <b>Game ID / Info:</b> ${gameId}${couponStatusText}`;
 
     if (msg.photo) {
       const photoId = msg.photo[msg.photo.length - 1].file_id;
