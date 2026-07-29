@@ -33,19 +33,19 @@ function loadData() {
     prices: {
       mlbb: { 
         image: null, 
-        text: '🌸 *Lucky Top-up MM* 🌸\n\n💎 *Mobile Legends ဈေးနှုန်းများ* ✨\n\n🏦 *KBZPay* - 09786048552\n🌊 *WavePay* - 09786048552\n\n📌 *Game ID နှင့် ဝယ်ယူလိုသော Package လေး ရိုက်ပို့ပေးပါနော်*\n(ဥပမာ - 86 diamond သို့မဟုတ် Weekly Pass)\nGame ID {123456789(12345)} ပုံစံလေး ပို့ပေးပါနော် ✨' 
+        text: '🌸 *Lucky Top-up MM* 🌸\n\n💎 *Mobile Legends ဈေးနှုန်းများ* ✨\n\n🏦 *KBZPay* - 09786048552\n🌊 *WavePay* - 09786048552\n\n📌 Game ID နဲ့ ဝယ်ယူလိုတဲ့ Package လေးကို အတွဲလိုက်ရိုက်ပို့ပေးပါရှင့်✨\n\n🔹(ဥပမာ - ID 123456789 12345\n             - 86 diamond သို့ Weekly Pass)🔹' 
       },
       pubg: { 
         image: null, 
-        text: '🌸 *Lucky Top-up MM* 🌸\n\n🔫 *PUBG UC ဈေးနှုန်းများ* ✨\n\n🏦 *KBZPay* - 09786048552\n🌊 *WavePay* - 09786048552\n\n📌 *Character ID နှင့် UC ပမာဏလေး ရိုက်ပို့ပေးပါနော်*' 
+        text: '🌸 *Lucky Top-up MM* 🌸\n\n🔫 *PUBG UC ဈေးနှုန်းများ* ✨\n\n🏦 *KBZPay* - 09786048552\n🌊 *WavePay* - 09786048552\n\n📌 မှာယူရန် Character ID နှင့် ဝယ်ယူမည့် UC ပမာဏ(သို့) ဝယ်ယူမည့်တစ်ခြားပက်ကေ့ခ်ျလေးကိုစာရိုက်ပို့ပေးပါရှင့်✨\n\n🔹(ဥပမာ- 123456789\n          - 111 UC (သို့) elite pass)🔹' 
       },
       chess: { 
         image: null, 
-        text: '🌸 *Lucky Top-up MM* 🌸\n\n♟️ *Magic Chess Go Go ဈေးနှုန်းများ* ✨\n\n🏦 *KBZPay* - 09786048552\n🌊 *WavePay* - 09786048552\n\n📌 *Game ID နှင့် ဝယ်ယူလိုသော Package လေး ရိုက်ပို့ပေးပါနော်*' 
+        text: '🌸 *Lucky Top-up MM* 🌸\n\n♟️ *Magic Chess Go Go ဈေးနှုန်းများ* ✨\n\n🏦 *KBZPay* - 09786048552\n🌊 *WavePay* - 09786048552\n\n📌 မှာယူရန် Game ID နဲ့ ဝယ်ယူလိုတဲ့ Package လေးကို အတွဲလိုက်ရိုက်ပို့ပေးပါရှင့်✨\n\n🔹(ဥပမာ - 123456789 12345\n        - 86 diamond သို့ weekly pass)🔹' 
       },
       premium: {
         image: null,
-        text: '🌸 *Lucky Top-up MM* 🌸\n\n⭐ *Telegram Premium ဈေးနှုန်းများ* ✨\n\n• 3 Months Premium - ..... MMK\n• 6 Months Premium - ..... MMK\n• 12 Months Premium - ..... MMK\n\n🏦 *KBZPay* - 09786048552\n🌊 *WavePay* - 09786048552\n\n📌 *ဝယ်ယူလိုသော Month နှင့် Telegram Phone Number (သို့မဟုတ်) Username ပို့ပေးပါနော် ✨*'
+        text: '🌸 *Lucky Top-up MM* 🌸\n\n⭐ *Telegram Premium ဈေးနှုန်းများ* ✨\n\n• 3 Months Premium - ..... MMK\n• 6 Months Premium - ..... MMK\n• 12 Months Premium - ..... MMK\n\n🏦 *KBZPay* - 09786048552\n🌊 *WavePay* - 09786048552\n\n📌 မှာယူရန် ဝယ်ယူလိုတဲ့ Package နဲ့ telegram username ကို အတွဲလိုက်ရိုက်ပို့ပေးပါရှင့်✨\n\n🔹(ဥပမာ - @username\n        - 3 months premium)🔹'
       },
       other: { 
         image: null, 
@@ -318,7 +318,7 @@ bot.on('message', (msg) => {
       });
     } else {
       userState[chatId] = { step: 'waiting_slip', category: state.category, gameId: text, usedCoupon: 0 };
-      bot.sendMessage(chatId, '📌 *ကျေးဇူးပြုပြီး ငွေလွှဲပြေစာ (Payment Slip) လေး ပို့ပေးပါဦးနော် ✨*', { parse_mode: 'Markdown' });
+      bot.sendMessage(chatId, '🔹Kpay number - 09786048552\n🔹 Wavepay number - 09786048552\n\n📌 ကျေးဇူးပြုပြီး ငွေလွှဲပီးပါက ငွေလွှဲပြေစာ (Payment Slip) လေး ပို့ပေးပါဦးရှင့် ✨', { parse_mode: 'Markdown' });
     }
   } 
   else if ((msg.photo || msg.document) && state && typeof state === 'object' && state.step === 'waiting_slip') {
@@ -423,11 +423,13 @@ bot.on('callback_query', (query) => {
     bot.answerCallbackQuery(query.id);
     userState[chatId] = { step: 'waiting_game_id', category: category };
     
-    let promptText = '📌 *ကျေးဇူးပြု၍ Game ID နှင့် ဝယ်ယူလိုသော Package လေး ရိုက်ပို့ပေးပါနော် ✨*';
+    let promptText = '📌 Game ID နဲ့ ဝယ်ယူလိုတဲ့ Package လေးကို အတွဲလိုက်ရိုက်ပို့ပေးပါရှင့်✨\n\n🔹(ဥပမာ - ID 123456789 12345\n             - 86 diamond သို့ Weekly Pass)🔹';
     if (category === 'pubg') {
-      promptText = '📌 *ကျေးဇူးပြု၍ Character ID နှင့် UC ပမာဏလေး ရိုက်ပို့ပေးပါနော် ✨*';
+      promptText = '📌 မှာယူရန် Character ID နှင့် ဝယ်ယူမည့် UC ပမာဏ(သို့) ဝယ်ယူမည့်တစ်ခြားပက်ကေ့ခ်ျလေးကိုစာရိုက်ပို့ပေးပါရှင့်✨\n\n🔹(ဥပမာ- 123456789\n          - 111 UC (သို့) elite pass)🔹';
+    } else if (category === 'chess') {
+      promptText = '📌မှာယူရန် Game ID နဲ့ ဝယ်ယူလိုတဲ့ Package လေးကို အတွဲလိုက်ရိုက်ပို့ပေးပါရှင့်✨\n\n🔹(ဥပမာ - 123456789 12345\n        - 86 diamond သို့ weekly pass)🔹';
     } else if (category === 'premium') {
-      promptText = '📌 *ဝယ်ယူလိုသော Month နှင့် Telegram Phone Number (သို့မဟုတ်) Username ပို့ပေးပါနော် ✨*';
+      promptText = '📌မှာယူရန် ဝယ်ယူလိုတဲ့ Package နဲ့ telegram username ကို အတွဲလိုက်ရိုက်ပို့ပေးပါရှင့်✨\n\n🔹(ဥပမာ - @username\n        - 3 months premium)🔹';
     }
     
     bot.sendMessage(chatId, promptText, { parse_mode: 'Markdown' });
@@ -436,14 +438,14 @@ bot.on('callback_query', (query) => {
     if (st && st.step === 'asking_coupon') {
       userState[chatId] = { step: 'waiting_slip', category: st.category, gameId: st.gameId, usedCoupon: st.count };
       bot.answerCallbackQuery(query.id, { text: 'Coupon အသုံးပြုလိုက်ပါပြီ' });
-      bot.sendMessage(chatId, `🎉 *${st.discount.toLocaleString()} MMK Discount Coupon အသုံးပြုလိုက်ပါပြီနော်!*\n\nကျေးဇူးပြု၍ ကျသင့်ငွေထဲမှ *${st.discount.toLocaleString()} MMK နှုတ်ပြီး* ကျန်ရှိသော ပမာဏကို ငွေလွှဲပေးပါရှင့် ✨\n\n📌 *ငွေလွှဲပြီးပါက ငွေလွှဲပြေစာ (Payment Slip) ဓာတ်ပုံ ပို့ပေးပါနော်*`, { parse_mode: 'Markdown' });
+      bot.sendMessage(chatId, `🎉 *${st.discount.toLocaleString()} MMK Discount Coupon အသုံးပြုလိုက်ပါပြီနော်!*\n\nကျေးဇူးပြု၍ ကျသင့်ငွေထဲမှ *${st.discount.toLocaleString()} MMK နှုတ်ပြီး* ကျန်ရှိသော ပမာဏကို ငွေလွှဲပေးပါရှင့် ✨\n\n🔹Kpay number - 09786048552\n🔹 Wavepay number - 09786048552\n\n📌 ကျေးဇူးပြုပြီး ငွေလွှဲပီးပါက ငွေလွှဲပြေစာ (Payment Slip) လေး ပို့ပေးပါဦးရှင့် ✨`, { parse_mode: 'Markdown' });
     }
   } else if (data === 'skip_coupon') {
     const st = userState[chatId];
     if (st && st.step === 'asking_coupon') {
       userState[chatId] = { step: 'waiting_slip', category: st.category, gameId: st.gameId, usedCoupon: 0 };
       bot.answerCallbackQuery(query.id, { text: 'Coupon မသုံးပါ' });
-      bot.sendMessage(chatId, '📌 *ကျေးဇူးပြုပြီး ငွေလွှဲပြေစာ (Payment Slip) လေး ပို့ပေးပါဦးနော် ✨*', { parse_mode: 'Markdown' });
+      bot.sendMessage(chatId, '🔹Kpay number - 09786048552\n🔹 Wavepay number - 09786048552\n\n📌 ကျေးဇူးပြုပြီး ငွေလွှဲပီးပါက ငွေလွှဲပြေစာ (Payment Slip) လေး ပို့ပေးပါဦးရှင့် ✨', { parse_mode: 'Markdown' });
     }
   } else if (data.startsWith('edit_')) {
     const category = data.replace('edit_', '');
