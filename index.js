@@ -71,12 +71,17 @@ function loadData() {
   }
 }
 
+let db = loadData();
+let users = db.users;
+let salesData = db.salesData;
+let orders = db.orders;
+let prices = db.prices;
+
 function saveData() {
   const data = { users, salesData, orders, prices };
   fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
 }
 
-let { users, salesData, orders, prices } = loadData();
 let userState = {};
 
 if (!token) {
@@ -269,11 +274,11 @@ bot.on('message', (msg) => {
     return;
   }
 
-  if (text === '🎮 MLBB Diamond') sendPrice(chatId, 'mlbb');
-  else if (text === '🎮 PUBG UC') sendPrice(chatId, 'pubg');
-  else if (text === '♟️ Magic Chess Go Go') sendPrice(chatId, 'chess');
-  else if (text === '⭐ Telegram Premium') sendPrice(chatId, 'premium');
-  else if (text === '📦 Other Products') sendPrice(chatId, 'other');
+  if (text === '🎮 MLBB Diamond') sendCategoryOptions(chatId, 'mlbb', 'Mobile Legends');
+  else if (text === '🎮 PUBG UC') sendCategoryOptions(chatId, 'pubg', 'PUBG UC');
+  else if (text === '♟️ Magic Chess Go Go') sendCategoryOptions(chatId, 'chess', 'Magic Chess Go Go');
+  else if (text === '⭐ Telegram Premium') sendCategoryOptions(chatId, 'premium', 'Telegram Premium');
+  else if (text === '📦 Other Products') sendCategoryOptions(chatId, 'other', 'Other Products');
   else if (text === '🎟️ Check Coupon') {
     userState[chatId] = null;
     if (!users[chatId]) {
@@ -291,7 +296,7 @@ bot.on('message', (msg) => {
       }
     });
   } 
-  else if (state === 'waiting_game_id' && text) {
+  else if (state && typeof state === 'object' && state.step === 'waiting_game_id' && text) {
     if (!users[chatId]) {
       users[chatId] = { totalSpent: 0, coupons: 0, rollover: 0 };
       saveData();
@@ -300,7 +305,7 @@ bot.on('message', (msg) => {
     
     if (u.coupons > 0) {
       const discountAmount = u.coupons * 500;
-      userState[chatId] = { step: 'asking_coupon', gameId: text, discount: discountAmount, count: u.coupons };
+      userState[chatId] = { step: 'asking_coupon', category: state.category, gameId: text, discount: discountAmount, count: u.coupons };
       
       bot.sendMessage(chatId, `🎟️ *သင့်ထံတွင် ${u.coupons} ခုမြောက် Coupon (${discountAmount.toLocaleString()} MMK Discount) ရှိနေပါတယ်နော်!*\n\nဒီ အော်ဒါအတွက် Discount Coupon ကို အသုံးပြုချင်ပါသလားရှင့်?`, {
         parse_mode: 'Markdown',
@@ -312,7 +317,7 @@ bot.on('message', (msg) => {
         }
       });
     } else {
-      userState[chatId] = { step: 'waiting_slip', gameId: text, usedCoupon: 0 };
+      userState[chatId] = { step: 'waiting_slip', category: state.category, gameId: text, usedCoupon: 0 };
       bot.sendMessage(chatId, '📌 *ကျေးဇူးပြုပြီး ငွေလွှဲပြေစာ (Payment Slip) လေး ပို့ပေးပါဦးနော် ✨*', { parse_mode: 'Markdown' });
     }
   } 
@@ -352,13 +357,32 @@ bot.on('message', (msg) => {
   }
 });
 
+function sendCategoryOptions(chatId, category, title) {
+  userState[chatId] = null;
+  const opts = {
+    parse_mode: 'Markdown',
+    reply_markup: {
+      inline_keyboard: [
+        [
+          { text: '👁️ ဈေးနှုန်းကြည့်ရန်', callback_data: `view_price_${category}` },
+          { text: '🛒 ဝယ်ယူရန်', callback_data: `buy_now_${category}` }
+        ],
+        [{ text: '💬 Contact Admin', url: ADMIN_LINK }]
+      ]
+    }
+  };
+  bot.sendMessage(chatId, `✨ *${title}* ဝန်ဆောင်မှုမှ ကြိုဆိုပါတယ်ရှင့်။\nအောက်ပါခလုတ်များမှ လိုအပ်သည်ကို ရွေးချယ်ပါ 👇`, opts);
+}
+
 function sendPrice(chatId, category) {
-  userState[chatId] = 'waiting_game_id';
   const p = prices[category];
   const opts = {
     parse_mode: 'Markdown',
     reply_markup: {
-      inline_keyboard: [[{ text: '💬 Contact Admin', url: ADMIN_LINK }]]
+      inline_keyboard: [
+        [{ text: '🛒 ယခုဝယ်ယူရန်', callback_data: `buy_now_${category}` }],
+        [{ text: '💬 Contact Admin', url: ADMIN_LINK }]
+      ]
     }
   };
   if (p.image) {
@@ -370,20 +394,40 @@ function sendPrice(chatId, category) {
 
 bot.on('callback_query', (query) => {
   const data = query.data;
+  const chatId = query.message.chat.id;
 
-  if (data === 'use_coupon') {
-    const st = userState[query.message.chat.id];
+  if (data.startsWith('view_price_')) {
+    const category = data.replace('view_price_', '');
+    bot.answerCallbackQuery(query.id);
+    sendPrice(chatId, category);
+  } else if (data.startsWith('buy_now_')) {
+    const category = data.replace('buy_now_', '');
+    bot.answerCallbackQuery(query.id);
+    userState[chatId] = { step: 'waiting_game_id', category: category };
+    
+    let promptText = '📌 *ကျေးဇူးပြု၍ Game ID နှင့် ဝယ်ယူလိုသော Package လေး ရိုက်ပို့ပေးပါနော် ✨*';
+    if (category === 'pubg') {
+      promptText = '📌 *ကျေးဇူးပြု၍ Character ID နှင့် UC ပမာဏလေး ရိုက်ပို့ပေးပါနော် ✨*';
+    } else if (category === 'premium') {
+      promptText = '📌 *ဝယ်ယူလိုသော Month နှင့် Telegram Phone Number (သို့မဟုတ်) Username ပို့ပေးပါနော် ✨*';
+    } else if (category === 'other') {
+      promptText = '📌 *ဝယ်ယူလိုသော Product အမည် နှင့် Package လေး ရိုက်ပို့ပေးပါနော် ✨*';
+    }
+    
+    bot.sendMessage(chatId, promptText, { parse_mode: 'Markdown' });
+  } else if (data === 'use_coupon') {
+    const st = userState[chatId];
     if (st && st.step === 'asking_coupon') {
-      userState[query.message.chat.id] = { step: 'waiting_slip', gameId: st.gameId, usedCoupon: st.count };
+      userState[chatId] = { step: 'waiting_slip', category: st.category, gameId: st.gameId, usedCoupon: st.count };
       bot.answerCallbackQuery(query.id, { text: 'Coupon အသုံးပြုလိုက်ပါပြီ' });
-      bot.sendMessage(query.message.chat.id, `🎉 *${st.discount.toLocaleString()} MMK Discount Coupon အသုံးပြုလိုက်ပါပြီနော်!*\n\nကျေးဇူးပြု၍ ကျသင့်ငွေထဲမှ *${st.discount.toLocaleString()} MMK နှုတ်ပြီး* ကျန်ရှိသော ပမာဏကို ငွေလွှဲပေးပါရှင့် ✨\n\n📌 *ငွေလွှဲပြီးပါက ငွေလွှဲပြေစာ (Payment Slip) ဓာတ်ပုံ ပို့ပေးပါနော်*`, { parse_mode: 'Markdown' });
+      bot.sendMessage(chatId, `🎉 *${st.discount.toLocaleString()} MMK Discount Coupon အသုံးပြုလိုက်ပါပြီနော်!*\n\nကျေးဇူးပြု၍ ကျသင့်ငွေထဲမှ *${st.discount.toLocaleString()} MMK နှုတ်ပြီး* ကျန်ရှိသော ပမာဏကို ငွေလွှဲပေးပါရှင့် ✨\n\n📌 *ငွေလွှဲပြီးပါက ငွေလွှဲပြေစာ (Payment Slip) ဓာတ်ပုံ ပို့ပေးပါနော်*`, { parse_mode: 'Markdown' });
     }
   } else if (data === 'skip_coupon') {
-    const st = userState[query.message.chat.id];
+    const st = userState[chatId];
     if (st && st.step === 'asking_coupon') {
-      userState[query.message.chat.id] = { step: 'waiting_slip', gameId: st.gameId, usedCoupon: 0 };
+      userState[chatId] = { step: 'waiting_slip', category: st.category, gameId: st.gameId, usedCoupon: 0 };
       bot.answerCallbackQuery(query.id, { text: 'Coupon မသုံးပါ' });
-      bot.sendMessage(query.message.chat.id, '📌 *ကျေးဇူးပြုပြီး ငွေလွှဲပြေစာ (Payment Slip) လေး ပို့ပေးပါဦးနော် ✨*', { parse_mode: 'Markdown' });
+      bot.sendMessage(chatId, '📌 *ကျေးဇူးပြုပြီး ငွေလွှဲပြေစာ (Payment Slip) လေး ပို့ပေးပါဦးနော် ✨*', { parse_mode: 'Markdown' });
     }
   } else if (data.startsWith('edit_')) {
     const category = data.replace('edit_', '');
@@ -402,7 +446,7 @@ bot.on('callback_query', (query) => {
   } else if (data.startsWith('reject_')) {
     const targetId = data.split('_')[1];
     bot.answerCallbackQuery(query.id);
-    bot.sendMessage(targetId, '❌ *စိတ်မကောင်းပါဘူးရှင့် သင်၏ ငွေလွှဲပြေစာ မမှန်ကန်ပါသဖြင့် ငွေလက်ခံမှုကို ငြင်းပယ်လိုက်ပါတယ်နော် 🥺*\nအသေးစိတ် သိရှိလိုပါက Admin ထံ ဆက်သွယ်ပေးပါရှင့်။', {
+    bot.sendMessage(targetId, '❌ *စိတ်မကောင်းပါဘူးရှင့် သင်၏ ငွေလွှဲပြေစာ မမှန်ကန်ပါသဖြင့် ငွေလက်ခံမှုကို ငြင်းပယ်လိုက်ပါတယ်နော် 🥺*\nအသေးစိတ် သိရှိလိုပါက Admin က တိုက်ရိုက် ဆက်သွယ်ပေးပါမည်။', {
       parse_mode: 'Markdown',
       reply_markup: {
         inline_keyboard: [[{ text: '💬 Contact Admin', url: ADMIN_LINK }]]
