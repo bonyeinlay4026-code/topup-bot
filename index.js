@@ -259,7 +259,7 @@ bot.on('message', (msg) => {
     let neededAmount = 100000 - u.rollover;
     let couponMsg = `\n\n🎟️ *Coupon အခြေအနေ:*\n• ဝယ်ယူခဲ့သော ပမာဏ: ${amount.toLocaleString()} MMK\n• နောက်ထပ် Coupon ရရန် လိုအပ်သည့် ပမာဏ: ${neededAmount.toLocaleString()} MMK`;
     if (newCoupons > 0) {
-      couponMsg += `\n\n🎉 *ဂုဏ်ယူပါတယ်ရှင့်! 500 MMK Discount Coupon (${newCoupons} ခု) အသစ် ထပ်မံရရှိထားပါတယ်နော် 💕*`;
+      couponMsg += `\n\n🎉 *ဂုဏ်ယူပါတယ်ရှင့်! 1000 MMK Discount Coupon (${newCoupons} ခု) အသစ် ထပ်မံရရှိထားပါတယ်နော် 💕*`;
     }
 
     bot.sendMessage(targetId, `✅ *ငွေလွှဲပြေစာလေး လက်ခံရရှိပါတယ်ရှင့် 💖*\n၁၀ မိနစ်အတွင်း ဂိမ်းအကောင့်ထဲ ထည့်ပေးသွားပါမည်နော် ✨${couponMsg}`, {
@@ -287,7 +287,7 @@ bot.on('message', (msg) => {
     }
     const u = users[chatId];
     let neededAmount = 100000 - u.rollover;
-    bot.sendMessage(chatId, `📊 *Coupon အခြေအနေ စစ်ဆေးပေးထားပါတယ်ရှင့် ✨*\n\n• ရရှိထားသော 500 MMK Coupon: ${u.coupons} ခု 🎟️ (စုစုပေါင်း Discount: ${(u.coupons * 500).toLocaleString()} MMK)\n• လက်ရှိ စုဆောင်းထားသော ပမာဏ: ${u.rollover.toLocaleString()} / 100,000 MMK\n• နောက်ထပ် Coupon ရရန် လိုအပ်သည့် ပမာဏ: ${neededAmount.toLocaleString()} MMK`, { parse_mode: 'Markdown' });
+    bot.sendMessage(chatId, `📊 *Coupon အခြေအနေ စစ်ဆေးပေးထားပါတယ်ရှင့် ✨*\n\n• ရရှိထားသော 1000 MMK Coupon: ${u.coupons} ခု 🎟️ (စုစုပေါင်း Discount: ${(u.coupons * 1000).toLocaleString()} MMK)\n• လက်ရှိ စုဆောင်းထားသော ပမာဏ: ${u.rollover.toLocaleString()} / 100,000 MMK\n• နောက်ထပ် Coupon ရရန် လိုအပ်သည့် ပမာဏ: ${neededAmount.toLocaleString()} MMK`, { parse_mode: 'Markdown' });
   } else if (text === '💬 Contact Admin') {
     userState[chatId] = null;
     bot.sendMessage(chatId, `💬 Admin နှင့် တိုက်ရိုက် စကားပြောချင်ပါက အောက်ပါ ခလုတ်လေးကို နှိပ်ပါ သို့မဟုတ် @${ADMIN_USERNAME} သို့ တိုက်ရိုက် စာပို့နိုင်ပါတယ်နော် ✨`, {
@@ -304,7 +304,7 @@ bot.on('message', (msg) => {
     const u = users[chatId];
     
     if (u.coupons > 0) {
-      const discountAmount = u.coupons * 500;
+      const discountAmount = u.coupons * 1000;
       userState[chatId] = { step: 'asking_coupon', category: state.category, gameId: text, discount: discountAmount, count: u.coupons };
       
       bot.sendMessage(chatId, `🎟️ *သင့်ထံတွင် ${u.coupons} ခုမြောက် Coupon (${discountAmount.toLocaleString()} MMK Discount) ရှိနေပါတယ်နော်!*\n\nဒီ အော်ဒါအတွက် Discount Coupon ကို အသုံးပြုချင်ပါသလားရှင့်?`, {
@@ -344,7 +344,7 @@ bot.on('message', (msg) => {
       }
     };
 
-    let couponStatusText = usedCouponCount > 0 ? `\n• 🎟️ <b>Discount Coupon သုံးထားသည်:</b> ${(usedCouponCount * 500).toLocaleString()} MMK နှုတ်ထားပါသည်` : '';
+    let couponStatusText = usedCouponCount > 0 ? `\n• 🎟️ <b>Discount Coupon သုံးထားသည်:</b> ${(usedCouponCount * 1000).toLocaleString()} MMK နှုတ်ထားပါသည်` : '';
     const captionText = `📥 <b>New Order Received!</b>\n\n• 👤 <b>Telegram Name:</b> ${fullName}\n• 🔗 <b>Username:</b> ${username}\n• 🆔 <b>Customer ID:</b> <code>${chatId}</code>\n• 🎮 <b>Game ID / Info:</b> ${gameId}${couponStatusText}`;
 
     if (msg.photo) {
@@ -478,3 +478,6 @@ bot.on('callback_query', (query) => {
     bot.sendMessage(ADMIN_ID, '✉️ Customer ထံ ပို့လိုသော စာကို ရိုက်ထည့်ပါ:');
   }
 });
+
+0
+
